@@ -1,0 +1,1 @@
+pp  --execute -z 9 -o exe/archive64.exe archive.pl
