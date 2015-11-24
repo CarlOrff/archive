@@ -130,8 +130,8 @@ foreach my $url (@urls) {
 				process_first 'html', "html_lang" => '@lang';
 				process_first 'title', "title_lang" => '@lang';
 				process_first 'title', "body_lang" => '@lang';
-				process_first '//meta[contains(@http-equiv,"-language")]', "meta_lang" => '@lang';
-				process_first '//meta[contains(@http-equiv,"-Language")]', "meta_lang2" => '@lang';
+				process_first '//meta[contains(@http-equiv,"-language")]', "meta_lang" => '@content';
+				process_first '//meta[contains(@http-equiv,"-Language")]', "meta_lang2" => '@content';
 			};
 			my $scraped = $scraper->scrape($r);
 			#print Dumper($scraped);
