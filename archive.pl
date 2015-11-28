@@ -210,7 +210,7 @@ foreach my $url (@urls) {
 			
 			#add to HTML list
 			print "print HTML\n";
-			$html .= '<li ' . (length($language) > 1 ? 'lang="'.$language.'"' : '') . '>' . (length($author) > 1 ? encode_entities($author).' ' : '') . '<a ' . (length($language) > 1 ? 'hreflang="'.$language.'" ' : '') . 'href="' . $encoded_url . '">' . HTML_format_title($title) . '</a>' . HTML_format_description($description) . "</li>\n";
+			$html .= '<li' . (length($language) > 1 ? ' lang="'.$language.'"' : '') . '>' . (length($author) > 1 ? encode_entities($author).' ' : '') . '<a ' . (length($language) > 1 ? 'hreflang="'.$language.'" ' : '') . 'href="' . $encoded_url . '">' . HTML_format_title($title) . '</a>' . HTML_format_description($description) . "</li>\n";
 			
 		}
 		
