@@ -23,7 +23,7 @@ use strict;
 binmode STDOUT, ":utf8";
 
 #use warnings;
-#use Data::Dumper;
+use Data::Dumper;
 
 use Browser::Open qw( open_browser );
 use FileHandle;
@@ -37,10 +37,10 @@ use Web::Scraper;
 # global variables
 ##################################################################################################
 
-my $botname = 'archive.pl/0.9';
+my $botname = 'archive.pl/0.91';
 my $scripturl = 'https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/';
 my @urls;
-my $html = "<!doctype html>\n<head>\n<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>\n<meta name='generator' content='$botname'>\n<link rel='help' href='$scripturl'>\n</head>\n<body>\n\n<ul>\n"; # text to print
+my $html = "<!doctype html>\n<head>\n<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>\n<meta name='generator' content='$botname'>\n<link rel='help' href='$scripturl'>\n<title>$botname result</title>\n</head>\n<body>\n\n<ul>\n"; # text to print
 my $author_delimiter = '/';
 
 # user agent string
@@ -105,6 +105,7 @@ foreach my $url (@urls) {
 				# title
 				process_first '//meta[contains(@property,"og:title")]', "open_graph_title" => '@content';
 				process_first '//meta[contains(@name,"DC.title")]', "dublin_core_title" => '@content';
+				process_first '//meta[contains(@property,"dc:title")]', "dublin_core_title2" => '@content';
 				process_first '//meta[contains(@name,"twitter:title")]', "twitter_title" => '@content';
 				process_first '//h3[contains(@class,"post-title entry-title")]', "blogspot_title" => "TEXT"; # Google Blogger
 				process_first "title", "title" => "TEXT";
@@ -113,6 +114,9 @@ foreach my $url (@urls) {
 				# description
 				process_first '//meta[contains(@property,"og:description")]', "open_graph_description" => '@content';
 				process_first '//meta[contains(@name,"DC.description")]', "dublin_core_description" => '@content';
+				process_first '//meta[contains(@name,"dc:description")]', "dublin_core_description2" => '@content';
+				process_first '//meta[contains(@name,"DCTERMS.abstract")]', "dublin_core_abstract" => '@content';
+				process_first '//meta[contains(@property,"dcterms:abstract")]', "dublin_core_abstract2" => '@content';
 				process_first '//meta[contains(@name,"twitter:description")]', "twitter_description" => '@content';
 				process_first '//meta[starts-with(@name,"description")]', "meta_description" => '@content';
 				process_first '//meta[starts-with(@name,"Description")]', "meta_description2" => '@content';
@@ -120,6 +124,8 @@ foreach my $url (@urls) {
 				# we only look for Dublin Core and XML elements since Open Graph stores an URL, Twitter an account and Schema.Org needs enhanced parsing
 				process '//meta[contains(@name,"DC.creator")]', "dublin_core_author[]" => '@content';
 				process '//meta[contains(@name,"DC.contributor")]', "dublin_core_author[]" => '@content';
+				process '//meta[contains(@property,"dc:creator")]', "dublin_core_author2[]" => '@content';
+				process '//meta[contains(@property,"dc:contributor")]', "dublin_core_author2[]" => '@content';
 				process '//meta[starts-with(@name,"Creator")]', "meta_author[]" => '@content';
 				process '//meta[starts-with(@name,"Author")]', "meta_author[]" => '@content';
 				process '//meta[starts-with(@name,"creator")]', "meta_author[]" => '@content';
@@ -147,6 +153,9 @@ foreach my $url (@urls) {
 			elsif (exists($scraped->{'dublin_core_title'})) {
 				$title = $scraped->{'dublin_core_title'};
 			}
+			elsif (exists($scraped->{'dublin_core_title2'})) {
+				$title = $scraped->{'dublin_core_title2'};
+			}
 			elsif (exists($scraped->{'blogspot_title'})) {
 				$title = $scraped->{'blogspot_title'};
 			}
@@ -167,13 +176,16 @@ foreach my $url (@urls) {
 			
 			# we assume that the longest description is the best
 			print "description ";
-			$description = reduce { length $a > length $b ? $a : $b } map {$_ if defined $_} ($scraped->{'open_graph_description'},$scraped->{'dublin_core_description'},$scraped->{'twitter_description'},$scraped->{'meta_description'},$scraped->{'meta_description2'});
+			$description = reduce { length $a > length $b ? $a : $b } map {$_ if defined $_} ($scraped->{'open_graph_description'},$scraped->{'dublin_core_description'},$scraped->{'dublin_core_description2'},$scraped->{'twitter_description'},$scraped->{'dublin_core_abstract'},$scraped->{'dublin_core_abstract2'},$scraped->{'meta_description'},$scraped->{'meta_description2'});
 			print length($description), " characters\n";
 			
 			# join authors
 			print "authors ";
 			if (exists($scraped->{'dublin_core_author'})) {
 				$author = join($author_delimiter,@{$scraped->{'dublin_core_author'}});
+			}
+			if (exists($scraped->{'dublin_core_author2'})) {
+				$author = join($author_delimiter,@{$scraped->{'dublin_core_author2'}});
 			}
 			elsif (exists($scraped->{'meta_author'})) {
 				$author = join($author_delimiter,@{$scraped->{'meta_author'}});
@@ -220,17 +232,25 @@ foreach my $url (@urls) {
 
 		elsif ($r->header('content-type') =~ /pdf$/i) {
 		
+		my $content = $r->content;
+		$content =~ s/\n//g;
+
 			# PDF metadata are stored in plain text or XML, so we can process them by common string operations.
 		
 			# Find title
 			print "title ";
-			# try Dublin Core
-			if ($r->content =~ /\bdc\:title\s?=\s?("(.+?)"|'(.+?)')/i) {
+			# try PDF core
+			if ($content =~ /\/Title\s*\((.+?)\)/) {
+				$title = $1;
+			}
+			# try Dublin Core as attribute
+			elsif ($content =~ /\bdc\:title\s?=\s?("(.+?)"|'(.+?)')/i) {
 				$title = $+;
 			}
-			# try PDF core
-			elsif ($r->content =~ /\/Title\s\((.+?)\)/) {
+			# try Dublin Core as tag
+			elsif ($content =~ /<dc\:title>\s*(.*?)\s*<\/dc\:title>/i) {
 				$title = $1;
+				$title =~ s/\s*<\/?[a-z].*?>\s*//g;
 			}
 			else {
 				$title = $url;
@@ -240,7 +260,7 @@ foreach my $url (@urls) {
 			# Find description
 			print "description ";
 			# try Dublin Core
-			if ($r->content =~ /\bdc\:description\s?=\s?("(.+?)"|'(.+?)')/i) {
+			if ($content =~ /\bdc\:description\s?=\s?("(.+?)"|'(.+?)')/i) {
 				$description = $+;
 			}
 			else {
@@ -251,17 +271,14 @@ foreach my $url (@urls) {
 			# Find author
 			print "authors ";
 			my %authors;
-			# try XAP
-			while ($r->content =~ /\bxap\:Author\s?=\s?("(.+?)"|'(.+?)')/gi) {
-				my $hit = $+;
-				chop($hit);
-				$hit =~ s/^.+?["']//;
-				last if exists($authors{$hit}); # avoid infinite loop
-				$authors{$hit}++;
+			
+			# try PDF core
+			if ($content =~ /\/Author\s*\((.+?)\)/) {
+				$authors{$1}++;
 			}
-			# try Dublin Core
+			# try XAP
 			if (scalar keys %authors == 0) {
-				while ($r->content =~ /\bdc\:c(rea|ontribu)tor\s?=\s?("(.+?)"|'(.+?)')/gi) {
+				while ($content =~ /\bxap\:Author\s?=\s?("(.+?)"|'(.+?)')/gi) {
 					my $hit = $+;
 					chop($hit);
 					$hit =~ s/^.+?["']//;
@@ -269,9 +286,28 @@ foreach my $url (@urls) {
 					$authors{$hit}++;
 				}
 			}
+			# try Dublin Core as attribute
+			if (scalar keys %authors == 0) {
+				while ($content =~ /\bdc\:c(rea|ontribu)tor\s?=\s?("(.+?)"|'(.+?)')/gi) {
+					my $hit = $+;
+					chop($hit);
+					$hit =~ s/^.+?["']//;
+					last if exists($authors{$hit}); # avoid infinite loop
+					$authors{$hit}++;
+				}
+			}
+			# try Dublin Core as tag
+			if (scalar keys %authors == 0) {
+				while ($content =~ /<dc\:c(rea|ontribu)tor>\s*(.*?)\s*<\/dc\:c(rea|ontribu)tor>/gi) {
+					my $hit = $2;
+					$hit =~ s/\s*<\/?[a-z].*?>\s*//g;
+					last if exists($authors{$hit}); # avoid infinite loop
+					$authors{$hit}++;
+				}
+			}
 			# try PDF/X
 			if (scalar keys %authors == 0) {
-				while ($r->content =~ /<pdfx\:myAuthorName>(.+?)<\/pdfx\:myAuthorName>/gi) {
+				while ($content =~ /<pdfx\:myAuthorName>(.+?)<\/pdfx\:myAuthorName>/gi) {
 					my $hit = $+;
 					$hit =~ s/<.?pdfx\:myAuthorName>//i;
 					last if exists($authors{$hit}); # avoid infinite loop
@@ -281,18 +317,14 @@ foreach my $url (@urls) {
 			if (scalar keys %authors > 0) {
 				$author = join($author_delimiter,keys %authors);
 			}
-			# try PDF core
-			elsif ($r->content =~ /\/Author\s\((.+?)\)/) {
-				$author = $1;
-			}
 			else {
 				$author = '';
 			}
-			print length($author), " characters\n";
+			print length $author, " characters $author\n";
 			
 			#add to HTML list
 			print "print HTML\n";
-			$html .= '<li>' . (length($author) > 1 ? encode_entities($author).' ' : '') . '<a href="' . $encoded_url . '" type="application/pdf">' . HTML_format_title($title) . '</a>&nbsp;<sup>[PDF]</sup>' . HTML_format_description($description) . "</li>\n";
+			$html .= '<li>' . (length $author > 0 ? encode_entities($author).' ' : '') . '<a href="' . $encoded_url . '" type="application/pdf">' . HTML_format_title($title) . '</a>&nbsp;<sup>[PDF]</sup>' . HTML_format_description($description) . "</li>\n";
 		}
 		
 		# other MIME types
@@ -338,7 +370,7 @@ if (defined $fh) {
 	print $fh $html;
 	undef $fh;       # automatically closes the file
 }
-	
+
 print "DONE!\n";
 
 ##################################################################################################
