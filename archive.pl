@@ -63,13 +63,13 @@ getopts('ac:f:u:', \%opts);
 
 my $creator = ($opts{c} && length $opts{c} > 0) ?  $opts{c} : "Ingram Braun";
 my $infile = ($opts{f} && length $opts{f} > 0) ?  $opts{f} : "urls.txt";
-$scripturl = { rel => 'self', href => $opts{u}, } if $opts{a} && $opts{u} && length $opts{c} > 0;
+my %scripturl = ($opts{u} && length $opts{u} > 0) ? ( 'rel' => 'self', 'href' => encode_entities($opts{u}), ) : ( 'href' => $scripturl, ) if $opts{a};
 
 my $outfile = ($opts{a}) ? XML::Atom::SimpleFeed->new(
-     id => $$scripturl{href},
+     id => $scripturl{href},
      title   => 'Archived URLs',
-     link    => encode_entities($scripturl),
-     updated => DateTime::Format::W3CDTF->new()->format_datetime(DateTime->now),
+     link    => \%scripturl,
+     updated => DateTime::Format::W3CDTF->new()->format_datetime(DateTime->now), 
      author  => $creator, # needed since it is not sure that all entries have an author
      generator  => $botname,
  ) : "<!doctype html>\n<head>\n<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>\n<meta name='generator' content='$botname'>\n<link rel='help' href='$scripturl'>\n<title>$botname result</title>\n</head>\n<body>\n\n<ul>\n";
