@@ -5,12 +5,19 @@
 #
 # archive.pl
 #
-# (c) 2015 by Ingram Braun (https://ingram-braun.net/)
+# (c) 2015-2016 by Ingram Braun (https://ingram-braun.net/)
 #
 # PURPOSE: extracts metada from HTML and PDF URLs, stores them in the Internet Archive
-# (https://archive.org/) and generates a report in HTML that is suitable for posting it to a blog.
+# (https://archive.org/) and generates a report (HTML or Atom) that is suitable for posting it 
+# to a blog or as Atom feed.
 #
-# USAGE: store URLs as space-separated list in file urls.txt and start archive.pl (without args)
+# USAGE: store URLs as space-separated list in file urls.txt and start archive.pl
+#    Optional arguments:
+#               -a              Atom feed instead of HTML output
+#               -c <creator>    Name of the feed author (feed only)
+#               -f <filename>   Other input file name than urls.txt
+#               -u <URL>        Feed URL (feed only)
+#
 #
 # LICENSE: GNU GENERAL PUBLIC LICENSE v.3
 #
@@ -26,31 +33,52 @@ binmode STDOUT, ":utf8";
 use Data::Dumper;
 
 use Browser::Open qw( open_browser );
+use DateTime;
+use DateTime::Format::W3CDTF;
 use FileHandle;
+use Getopt::Std;
 use HTML::Entities;
 use List::Util qw( reduce );
 use LWP::RobotUA;
 use WWW::RobotRules;
 use Web::Scraper;
+use XML::Atom::SimpleFeed;
 
 ##################################################################################################
 # global variables
 ##################################################################################################
 
-my $botname = 'archive.pl/0.91';
-my $scripturl = 'https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/';
+my $botname = 'archive.pl/0.99';
 my @urls;
-my $html = "<!doctype html>\n<head>\n<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>\n<meta name='generator' content='$botname'>\n<link rel='help' href='$scripturl'>\n<title>$botname result</title>\n</head>\n<body>\n\n<ul>\n"; # text to print
 my $author_delimiter = '/';
 
 # user agent string
+my $scripturl = 'https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/';
 my $ua_string = "Mozilla/5.0 (compatible; $botname; +$scripturl)";
+
+# fetch options
+my %opts;
+getopts('ac:f:u:', \%opts);
+
+my $creator = ($opts{c} && length $opts{c} > 0) ?  $opts{c} : "Ingram Braun";
+my $infile = ($opts{f} && length $opts{f} > 0) ?  $opts{f} : "urls.txt";
+$scripturl = { rel => 'self', href => $opts{u}, } if $opts{a} && $opts{u} && length $opts{c} > 0;
+
+my $outfile = ($opts{a}) ? XML::Atom::SimpleFeed->new(
+     id => $$scripturl{href},
+     title   => 'Archived URLs',
+     link    => encode_entities($scripturl),
+     updated => DateTime::Format::W3CDTF->new()->format_datetime(DateTime->now),
+     author  => $creator, # needed since it is not sure that all entries have an author
+     generator  => $botname,
+ ) : "<!doctype html>\n<head>\n<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>\n<meta name='generator' content='$botname'>\n<link rel='help' href='$scripturl'>\n<title>$botname result</title>\n</head>\n<body>\n\n<ul>\n";
+
 
 ##################################################################################################
 # read URL list from file (space separated list)
 ##################################################################################################
 
-my $fh = FileHandle->new("urls.txt", "r");
+my $fh = FileHandle->new($infile, "r");
 if (defined $fh) {
 	while(<$fh>) {
 		push(@urls,split(/\s+/,$_));
@@ -87,8 +115,8 @@ foreach my $url (@urls) {
 	
 	# fetch URL
 	my $r = $ua->request(HTTP::Request->new( GET => $url ));
-	
-	if ($r->is_success) {
+    
+    if ($r->is_success) {
 	
 		print "successfull!\n";
 		
@@ -99,8 +127,8 @@ foreach my $url (@urls) {
 ##################################################################################################
 
 		if ($r->header('content-type') =~ /(ht|x)ml/i) {
-		
-			# contains() is case sensitive.
+        
+            # contains() is case sensitive.
 			my $scraper = scraper {
 				# title
 				process_first '//meta[contains(@property,"og:title")]', "open_graph_title" => '@content';
@@ -220,9 +248,18 @@ foreach my $url (@urls) {
 			}
 			print length($language), " characters\n";
 			
-			#add to HTML list
-			print "print HTML\n";
-			$html .= '<li' . (length($language) > 1 ? ' lang="'.$language.'"' : '') . '>' . (length($author) > 1 ? encode_entities($author).' ' : '') . '<a ' . (length($language) > 1 ? 'hreflang="'.$language.'" ' : '') . 'href="' . $encoded_url . '">' . HTML_format_title($title) . '</a>' . HTML_format_description($description) . "</li>\n";
+			#add to list
+            if ($opts{a}) {
+                $outfile->add_entry(
+                    author => encode_entities($author),
+                    link => $encoded_url,
+                    summary => encode_entities($description),
+                    title => encode_entities($title),
+                );
+            }
+            else {
+                $outfile .= '<li' . (length($language) > 1 ? ' lang="'.$language.'"' : '') . '>' . (length($author) > 1 ? encode_entities($author).' ' : '') . '<a ' . (length($language) > 1 ? 'hreflang="'.$language.'" ' : '') . 'href="' . $encoded_url . '">' . HTML_format_title($title) . '</a>' . HTML_format_description($description) . "</li>\n";
+            }
 			
 		}
 		
@@ -231,7 +268,7 @@ foreach my $url (@urls) {
 ##################################################################################################
 
 		elsif ($r->header('content-type') =~ /pdf$/i) {
-		
+        
 		my $content = $r->content;
 		$content =~ s/\n//g;
 
@@ -323,14 +360,29 @@ foreach my $url (@urls) {
 			print length $author, " characters $author\n";
 			
 			#add to HTML list
-			print "print HTML\n";
-			$html .= '<li>' . (length $author > 0 ? encode_entities($author).' ' : '') . '<a href="' . $encoded_url . '" type="application/pdf">' . HTML_format_title($title) . '</a>&nbsp;<sup>[PDF]</sup>' . HTML_format_description($description) . "</li>\n";
+			print "print Entry\n";
+            if ($opts{a}) {
+                $outfile->add_entry(
+                    author => encode_entities($author),
+                    link => $encoded_url,
+                    summary => encode_entities($description),
+                    title => encode_entities($title),
+                );
+            }
+            else {
+                $outfile .= '<li>' . (length $author > 0 ? encode_entities($author).' ' : '') . '<a href="' . $encoded_url . '" type="application/pdf">' . HTML_format_title($title) . '</a>&nbsp;<sup>[PDF]</sup>' . HTML_format_description($description) . "</li>\n";
+            }
 		}
 		
 		# other MIME types
 		else {
 		
-			$html .= '<li><a href="' . $encoded_url . '">' . $encoded_url . '</a></li>\n'
+			if ($opts{a}) {
+                $outfile->add_entry(link => $encoded_url);
+            }
+            else {
+                $outfile .= '<li><a href="' . $encoded_url . '">' . $encoded_url . '</a></li>\n';
+            }
 		}
 		
 	}
@@ -339,8 +391,13 @@ foreach my $url (@urls) {
 	else {
 	
 		print "failed!\n";
-	
-		$html .= '<li><a href="' . $encoded_url . '">' . $encoded_url . '</a></li>'
+        
+        if ($opts{a}) {
+            $outfile->add_entry(link => $encoded_url);
+        }
+        else {
+            $outfile .= '<li><a href="' . $encoded_url . '">' . $encoded_url . '</a></li>\n';
+        }
 	}
 
 ##################################################################################################
@@ -358,17 +415,23 @@ foreach my $url (@urls) {
 ##################################################################################################
 
 # close list
-$html .= "</ul>\n\n</body>";
+$outfile .= "</ul>\n\n</body>" if !$opts{a};
 
 # create file name
-my $out = 'ia' . time() . '.html';
+my $out = ($opts{a}) ? 'archive.atom' : 'ia' . time() . '.html';
 
 # print HTML list to file	
 print "\nprint file " , $out . "\n";	
-$fh = FileHandle->new($out, O_WRONLY|O_CREAT);
+$fh = FileHandle->new($out, O_WRONLY|O_CREAT|O_TRUNC);
 if (defined $fh) {
-	print $fh $html;
-	undef $fh;       # automatically closes the file
+    if ($opts{a}) {
+        $outfile->print($fh);
+        undef $fh;
+    }
+    else {
+        print $fh $outfile;
+        undef $fh;       # automatically closes the file
+    }
 }
 
 print "DONE!\n";

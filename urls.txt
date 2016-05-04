@@ -1,1 +1,3 @@
 http://www.dguf.de/fileadmin/user_upload/Arbeitskreise/Kulturgutschutz/Handreichungen/DGUF-Dok_Handreichung_Antikenkauf_im_Internet.pdf
+http://search.cpan.org/~aristotle/XML-Atom-SimpleFeed/lib/XML/Atom/SimpleFeed.pm
+https://www.caveofprogramming.com/perl-tutorial/perl-argv-retrieving-command-line-arguments-in-perl.html
