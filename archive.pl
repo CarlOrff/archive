@@ -377,12 +377,14 @@ foreach my $url (@urls) {
 		
 		# other MIME types
 		else {
+        
+            my $warning = 'WARNING: unknown MIME type ' . $encoded_url;
 		
 			if ($opts{a}) {
-                $outfile->add_entry(link => $encoded_url);
+                $outfile->add_entry(link => $encoded_url, title => $warning);
             }
             else {
-                $outfile .= '<li><a href="' . $encoded_url . '">' . $encoded_url . '</a></li>\n';
+                $outfile .= '<li><a href="' . $encoded_url . '">' . $warning . '</a></li>\n';
             }
 		}
 		
@@ -392,12 +394,13 @@ foreach my $url (@urls) {
 	else {
 	
 		print "failed!\n";
+        my $warning = 'WARNING: cannot fetch ' . $encoded_url;
         
         if ($opts{a}) {
-            $outfile->add_entry(link => $encoded_url);
+            $outfile->add_entry(link => $encoded_url, title => $warning);
         }
         else {
-            $outfile .= '<li><a href="' . $encoded_url . '">' . $encoded_url . '</a></li>\n';
+            $outfile .= '<li><a href="' . $encoded_url . '">' . $warning . '</a></li>\n';
         }
 	}
 
