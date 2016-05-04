@@ -38,6 +38,7 @@ use DateTime::Format::W3CDTF;
 use FileHandle;
 use Getopt::Std;
 use HTML::Entities;
+use HTML::Strip;
 use List::Util qw( reduce );
 use LWP::RobotUA;
 use WWW::RobotRules;
@@ -251,14 +252,14 @@ foreach my $url (@urls) {
 			#add to list
             if ($opts{a}) {
                 $outfile->add_entry(
-                    author => encode_entities($author),
+                    author => encode($author),
                     link => $encoded_url,
-                    summary => encode_entities($description),
-                    title => encode_entities($title),
+                    summary => encode($description),
+                    title => encode($title),
                 );
             }
             else {
-                $outfile .= '<li' . (length($language) > 1 ? ' lang="'.$language.'"' : '') . '>' . (length($author) > 1 ? encode_entities($author).' ' : '') . '<a ' . (length($language) > 1 ? 'hreflang="'.$language.'" ' : '') . 'href="' . $encoded_url . '">' . HTML_format_title($title) . '</a>' . HTML_format_description($description) . "</li>\n";
+                $outfile .= '<li' . (length($language) > 1 ? ' lang="'.$language.'"' : '') . '>' . (length($author) > 1 ? encode($author).' ' : '') . '<a ' . (length($language) > 1 ? 'hreflang="'.$language.'" ' : '') . 'href="' . $encoded_url . '">' . HTML_format_title($title) . '</a>' . HTML_format_description($description) . "</li>\n";
             }
 			
 		}
@@ -363,14 +364,14 @@ foreach my $url (@urls) {
 			print "print Entry\n";
             if ($opts{a}) {
                 $outfile->add_entry(
-                    author => encode_entities($author),
+                    author => encode($author),
                     link => $encoded_url,
-                    summary => encode_entities($description),
-                    title => encode_entities($title),
+                    summary => encode($description),
+                    title => encode($title),
                 );
             }
             else {
-                $outfile .= '<li>' . (length $author > 0 ? encode_entities($author).' ' : '') . '<a href="' . $encoded_url . '" type="application/pdf">' . HTML_format_title($title) . '</a>&nbsp;<sup>[PDF]</sup>' . HTML_format_description($description) . "</li>\n";
+                $outfile .= '<li>' . (length $author > 0 ? encode($author).' ' : '') . '<a href="' . $encoded_url . '" type="application/pdf">' . HTML_format_title($title) . '</a>&nbsp;<sup>[PDF]</sup>' . HTML_format_description($description) . "</li>\n";
             }
 		}
 		
@@ -440,16 +441,36 @@ print "DONE!\n";
 # Subroutines
 ##################################################################################################
 
+
+# arg 1: string
+# returns string stripped off HTML tags and HTML entities
+sub clean_text {
+	my $hs = HTML::Strip->new(
+        emit_spaces => 0
+    );
+    return $hs->parse( $_[0] );
+}
+
+# arg 1: description string
+# returns formatted description string
+sub encode {
+	return $_[0] if length $_[0] == 0; # is empty
+    my $str = clean_text($_[0]);
+	return encode_entities($str);
+}
+
 # arg 1: title string
 # returns formatted title string
 sub HTML_format_title {
-	return $_[0] if $_[0] =~ /^[a-z]+\:\/\//i; # is URL
-	return '<cite>' . encode_entities($_[0]) . '</cite>';
+    my $str = clean_text($_[0]);
+	return $str if $str =~ /^[a-z]+\:\/\//i; # is URL
+	return '<cite>' . encode_entities($str) . '</cite>';
 }
 
 # arg 1: description string
 # returns formatted description string
 sub HTML_format_description {
 	return $_[0] if length $_[0] == 0; # is empty
-	return "<br />\n" . encode_entities($_[0]);
+    my $str = clean_text($_[0]);
+	return "<br />\n" . encode_entities($str);
 }
