@@ -20,7 +20,6 @@
 #               -n <username>   FTP user
 #               -o <host>       FTP host
 #               -p <password>   FTP password
-#               -r              Remove local file after FTPing
 #               -s              Save feed in Wayback machine (feed only)
 #               -u <URL>        Feed URL (feed only)
 #
@@ -69,7 +68,7 @@ my $wayback_url = 'http://web.archive.org/save/';
 
 # fetch options
 my %opts;
-getopts('ac:d:f:n:o:p:rsu:', \%opts);
+getopts('ac:d:f:n:o:p:su:', \%opts);
 
 # save old feed
 open_browser($wayback_url . $opts{u}) if length $opts{u} > 0 && $opts{s} && $opts{a};

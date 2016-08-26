@@ -16,17 +16,25 @@ Perl 5.22 (earlier versions not tested but it is likely to work with every build
 
 ## Usage
 
-Collect URLs you want to archive in file `urls.txt` separated by one or more spaces (eg. `\n`, `\s`, `\r`) and call `perl archive.pl`. The script does to things: it fetches the URLs and extracts some metadata (works with HTML and PDF). It submits them to Internet Archive by opening them in a browser. This is necessary because Internet Archive blocks robots globally. Then it generates a HTML file with a link list that you may post to your blog.
+Collect URLs you want to archive in file `urls.txt` separated by one or more spaces (eg. `\n`, `\s`, `\r`) and call `perl archive.pl`. The script does to things: it fetches the URLs and extracts some metadata (works with HTML and PDF). It submits them to Internet Archive by opening them in a browser. This is necessary because Internet Archive blocks robots globally. Then it generates a HTML file with a link list that you may post to your blog. Alternatively you can get the link list as Atom feed. Regardless of the format you can upload the file on a server via FTP.
 
 There are several optional switches
 
 `-a` output as Atom feed instead of HTML
 
-`-c <creator>` name of feed creator
+`-c <creator>` name of feed creator (feed only)
+
+`-d <path>` FTP path
 
 `-f <filename>` name of input file
 
-`-u <URL>` feed URL
+`-n <username>` FTP user
+
+`-o <host>` FTP host
+
+`-p <password>` FTP password
+
+`-u <URL>` feed URL (feed only)
 
 ## Project Page
 
