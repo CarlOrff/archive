@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License along with thi
 
 ## Requirements
 
-Perl 5.22 (earlier versions not tested but it is likely to work with every build that is  capabale of getting the required modules installed)
+Perl 5.24 (earlier versions not tested but it is likely to work with every build that is capabale of getting the required modules installed)
 
 ## Usage
 
