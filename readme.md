@@ -1,4 +1,4 @@
-# archive.pl v.10
+# archive.pl v1.0
 
 *A script for archiving URL sets (HTML, PDF)*
 
