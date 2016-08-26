@@ -26,7 +26,7 @@ There are several optional switches
 
 `-d <path>` FTP path
 
-`-f <filename>` name of input file
+`-f <filename>` name of input file if other than `urls.txt`
 
 `-n <username>` FTP user
 
