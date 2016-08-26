@@ -1,8 +1,8 @@
-# archive.pl
+# archive.pl v.10
 
 *A script for archiving URL sets (HTML, PDF)*
 
-Copyright (C) 2015- Ingram Braun (<https://ingram-braun.net/>)
+Copyright (C) 2015-2016 Ingram Braun (<https://ingram-braun.net/>)
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
