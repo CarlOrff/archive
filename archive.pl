@@ -9,13 +9,19 @@
 #
 # PURPOSE: extracts metada from HTML and PDF URLs, stores them in the Internet Archive
 # (https://archive.org/) and generates a report (HTML or Atom) that is suitable for posting it 
-# to a blog or as Atom feed.
+# to a blog or as Atom feed. The report can get ftp'ed.
 #
 # USAGE: store URLs as space-separated list in file urls.txt and start archive.pl
 #    Optional arguments:
 #               -a              Atom feed instead of HTML output
 #               -c <creator>    Name of the feed author (feed only)
+#               -d <path>       FTP path
 #               -f <filename>   Other input file name than urls.txt
+#               -n <username>   FTP user
+#               -o <host>       FTP host
+#               -p <password>   FTP password
+#               -r              Remove local file after FTPing
+#               -s              Save feed in Wayback machine (feed only)
 #               -u <URL>        Feed URL (feed only)
 #
 #
@@ -41,6 +47,8 @@ use HTML::Entities;
 use HTML::Strip;
 use List::Util qw( reduce );
 use LWP::RobotUA;
+use Net::FTP;
+use URI::Encode;
 use WWW::RobotRules;
 use Web::Scraper;
 use XML::Atom::SimpleFeed;
@@ -49,7 +57,7 @@ use XML::Atom::SimpleFeed;
 # global variables
 ##################################################################################################
 
-my $botname = 'archive.pl/0.99';
+my $botname = 'archive.pl/1.0';
 my @urls;
 my $author_delimiter = '/';
 
@@ -57,9 +65,14 @@ my $author_delimiter = '/';
 my $scripturl = 'https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/';
 my $ua_string = "Mozilla/5.0 (compatible; $botname; +$scripturl)";
 
+my $wayback_url = 'http://web.archive.org/save/';
+
 # fetch options
 my %opts;
-getopts('ac:f:u:', \%opts);
+getopts('ac:d:f:n:o:p:rsu:', \%opts);
+
+# save old feed
+open_browser($wayback_url . $opts{u}) if length $opts{u} > 0 && $opts{s} && $opts{a};
 
 my $creator = ($opts{c} && length $opts{c} > 0) ?  $opts{c} : "Ingram Braun";
 my $infile = ($opts{f} && length $opts{f} > 0) ?  $opts{f} : "urls.txt";
@@ -107,6 +120,9 @@ foreach my $url (@urls) {
 
 	# don't fetch empty URLs
 	next if length($url) < 1;
+    
+    # remove high chars
+    $url = URI::Encode->new({double_encode => 0})->encode($url);
 	
 	# HTML encode URL
 	my $encoded_url = encode_entities($url);
@@ -410,7 +426,7 @@ foreach my $url (@urls) {
 ##################################################################################################
 
 	print "submit to Internet Archive\n";
-	open_browser('http://web.archive.org/save/' . $url);
+	open_browser($wayback_url . $url);
 	
 } # main loop
 
@@ -439,6 +455,24 @@ if (defined $fh) {
 }
 
 print "DONE!\n";
+
+##################################################################################################
+# FTP file
+##################################################################################################
+
+# FTP if host is available
+if (length $opts{o} > 0) {
+
+    # init FTP
+    my $ftp=Net::FTP->new($opts{o}, Timeout => 240, Debug => 1) or die "Can't ftp to $opts{o}: $!\n";
+    
+    # user login
+	$ftp->login($opts{n},$opts{p}) or die "Can't login to $opts{o}: $!\n";
+    
+    # upload
+    grep {$ftp->cwd($_)} split/[\\\/]/, $opts{d};
+    $ftp->put($out, $out);
+}
 
 ##################################################################################################
 # Subroutines
