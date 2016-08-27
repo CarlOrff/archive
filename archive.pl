@@ -471,6 +471,9 @@ if (length $opts{o} > 0) {
     # upload
     grep {$ftp->cwd($_)} split/[\\\/]/, $opts{d};
     $ftp->put($out, $out);
+    
+    # close connection
+    $ftp->quit;
 }
 
 ##################################################################################################
