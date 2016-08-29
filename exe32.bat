@@ -1,1 +1,1 @@
-pp --execute -z 9 -o exe/archive32.exe archive.pl
+pp --execute -u -z 9 -o exe/archive32.exe archive.pl
