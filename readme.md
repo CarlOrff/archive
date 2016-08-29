@@ -34,6 +34,8 @@ There are several optional switches
 
 `-p <password>` FTP password
 
+`-s` Save feed in Wayback machine (feed only)
+
 `-u <URL>` feed URL (feed only)
 
 ## Project Page
