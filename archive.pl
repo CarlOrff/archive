@@ -56,7 +56,7 @@ use XML::Atom::SimpleFeed;
 # global variables
 ##################################################################################################
 
-my $botname = 'archive.pl/1.0';
+my $botname = 'archive.pl/1.1';
 my @urls;
 my $author_delimiter = '/';
 
@@ -425,7 +425,10 @@ foreach my $url (@urls) {
 ##################################################################################################
 
 	print "submit to Internet Archive\n";
-	open_browser($wayback_url . $url);
+    # We must escape the ampersands in parameter lists on Windows computers due to a bug
+    # in Browser:Open https://rt.cpan.org/Ticket/Display.html?id=117917&results=035ab18171a4a673f347e0ca5a8629f4
+    $url =~ s/(?<!\^)&/^&/g if index($^O,'MSWin32') > -1;
+	open_browser($wayback_url.$url);
 	
 } # main loop
 

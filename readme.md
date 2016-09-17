@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License along with thi
 
 ## Requirements
 
-Perl 5.24 (earlier versions not tested but it is likely to work with every build that is capabale of getting the required modules installed)
+Perl 5.24 (earlier versions not tested but it is likely to work with every build that is capabale of getting the required modules in stalled)
 
 ## Usage
 
@@ -37,6 +37,12 @@ There are several optional switches
 `-s` Save feed in Wayback machine (feed only)
 
 `-u <URL>` feed URL (feed only)
+
+## Changelog
+
+### v1.1
+
+ - Added workaround for ampersand bug on Windows in module `Browser::Open` <https://rt.cpan.org/Ticket/Display.html?id=117917&results=035ab18171a4a673f347e0ca5a8629f4>
 
 ## Project Page
 
