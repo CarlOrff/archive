@@ -1,8 +1,8 @@
-# archive.pl v1.0
+# archive.pl v1.2
 
-*A script for archiving URL sets (HTML, PDF)*
+*A script for archiving URL sets (HTML, PDF) in the [Internet Archive](https://archive.org).*
 
-Copyright (C) 2015-2016 Ingram Braun (<https://ingram-braun.net/>)
+Copyright (C) 2015-2017 Ingram Braun (<https://ingram-braun.net/>)
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
@@ -12,11 +12,11 @@ You should have received a copy of the GNU General Public License along with thi
 
 ## Requirements
 
-Perl 5.24 (earlier versions not tested but it is likely to work with every build that is capabale of getting the required modules in stalled)
+Perl 5.24 (earlier versions not tested but it is likely to work with every build that is capabale of getting the required modules installed)
 
 ## Usage
 
-Collect URLs you want to archive in file `urls.txt` separated by one or more spaces (eg. `\n`, `\s`, `\r`) and call `perl archive.pl`. The script does to things: it fetches the URLs and extracts some metadata (works with HTML and PDF). It submits them to Internet Archive by opening them in a browser. This is necessary because Internet Archive blocks robots globally. Then it generates a HTML file with a link list that you may post to your blog. Alternatively you can get the link list as Atom feed. Regardless of the format you can upload the file on a server via FTP.
+Collect URLs you want to archive in file `urls.txt` separated by one or more line breaks and UTF-8-encoded and call `perl archive.pl`. The script does to things: it fetches the URLs and extracts some metadata (works with HTML and PDF). It submits them to Internet Archive by opening them in a browser. This is necessary because Internet Archive blocks robots globally. Then it generates a HTML file with a link list that you may post to your blog. Alternatively you can get the link list as Atom feed. Regardless of the format you can upload the file on a server via FTP.
 
 There are several optional switches
 
@@ -39,6 +39,13 @@ There are several optional switches
 `-u <URL>` feed URL (feed only)
 
 ## Changelog
+
+### v1.2
+
+ - Internationalized domain names (IDN) allowed in URLs.
+ - Blank spaces allowed in URLs.
+ - URL list MUST be in UTF-8 now!
+ - Only line breaks allowed as list separator in URL list.
 
 ### v1.1
 

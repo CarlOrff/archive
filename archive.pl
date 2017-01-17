@@ -30,9 +30,8 @@
 #
 ##################################################################################################
 
-use feature 'unicode_strings';
 use strict;
-binmode STDOUT, ":utf8";
+use utf8::all;
 
 #use warnings;
 use Data::Dumper;
@@ -47,6 +46,7 @@ use HTML::Strip;
 use List::Util qw( reduce );
 use LWP::RobotUA;
 use Net::FTP;
+use Net::IDN::Encode 'domain_to_ascii';
 use URI::Encode;
 use WWW::RobotRules;
 use Web::Scraper;
@@ -56,7 +56,7 @@ use XML::Atom::SimpleFeed;
 # global variables
 ##################################################################################################
 
-my $botname = 'archive.pl/1.1';
+my $botname = 'archive.pl/1.2';
 my @urls;
 my $author_delimiter = '/';
 
@@ -92,9 +92,10 @@ my $outfile = ($opts{a}) ? XML::Atom::SimpleFeed->new(
 ##################################################################################################
 
 my $fh = FileHandle->new($infile, "r");
+binmode($fh, ":utf8");
 if (defined $fh) {
 	while(<$fh>) {
-		push(@urls,split(/\s+/,$_));
+		push(@urls,split(/\n+/,$_));
 	}
 	undef $fh;       # automatically closes the file
 }
@@ -120,11 +121,26 @@ foreach my $url (@urls) {
 	# don't fetch empty URLs
 	next if length($url) < 1;
     
-    # remove high chars
-    $url = URI::Encode->new({double_encode => 0})->encode($url);
+    # remove hash part:
+    $url =~ s/#.+//;
+    
+    $url =~ /(.+?\:\/\/)(.+?)($|\/.*)/;
+    my ($scheme,$host,$path_query) = ($1,$2,$3);
+    
+    # remove high chars in path and query params:
+    $path_query = URI::Encode->new({double_encode => 0})->encode($path_query);
+    
+    # convert IDN to ACE
+    print "HOST: ",$host,"\n";
+    $host = domain_to_ascii( $host );
+    
+    # now use prepared URL
+    $url = $scheme.$host.$path_query;
+    
+    print $host,"\n";
 	
 	# HTML encode URL
-	my $encoded_url = encode_entities($url);
+	my $encoded_url = encode_entities( $url );
 	
 	# status message
 	print "\nfetching ", $url, "\n";
@@ -137,7 +153,7 @@ foreach my $url (@urls) {
 		print "successfull!\n";
 		
 		my($title, $description, $author, $language);
-		
+        	
 ##################################################################################################
 # HTML
 ##################################################################################################
