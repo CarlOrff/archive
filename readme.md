@@ -40,6 +40,10 @@ There are several optional switches
 
 ## Changelog
 
+### v1.3
+ - Debugging messages removed.
+ - Archive.Org URL changed.
+
 ### v1.2
 
  - Internationalized domain names (IDN) allowed in URLs.

@@ -5,13 +5,13 @@
 #
 # archive.pl
 #
-# (c) 2015-2016 by Ingram Braun (https://ingram-braun.net/)
+# (c) 2015-2017 by Ingram Braun (https://ingram-braun.net/)
 #
 # PURPOSE: extracts metada from HTML and PDF URLs, stores them in the Internet Archive
 # (https://archive.org/) and generates a report (HTML or Atom) that is suitable for posting it 
 # to a blog or as Atom feed. The report can get ftp'ed.
 #
-# USAGE: store URLs as space-separated list in file urls.txt and start archive.pl
+# USAGE: store URLs as break-separated list in file urls.txt and start archive.pl
 #    Optional arguments:
 #               -a              Atom feed instead of HTML output
 #               -c <creator>    Name of the feed author (feed only)
@@ -34,7 +34,7 @@ use strict;
 use utf8::all;
 
 #use warnings;
-use Data::Dumper;
+#use Data::Dumper;
 
 use Browser::Open qw( open_browser );
 use DateTime;
@@ -56,7 +56,7 @@ use XML::Atom::SimpleFeed;
 # global variables
 ##################################################################################################
 
-my $botname = 'archive.pl/1.2';
+my $botname = 'archive.pl/1.3';
 my @urls;
 my $author_delimiter = '/';
 
@@ -64,7 +64,7 @@ my $author_delimiter = '/';
 my $scripturl = 'https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/';
 my $ua_string = "Mozilla/5.0 (compatible; $botname; +$scripturl)";
 
-my $wayback_url = 'http://web.archive.org/save/';
+my $wayback_url = 'http://web-beta.archive.org/save/';
 
 # fetch options
 my %opts;
@@ -88,7 +88,7 @@ my $outfile = ($opts{a}) ? XML::Atom::SimpleFeed->new(
 
 
 ##################################################################################################
-# read URL list from file (space separated list)
+# read URL list from file (line break separated list)
 ##################################################################################################
 
 my $fh = FileHandle->new($infile, "r");
@@ -131,13 +131,10 @@ foreach my $url (@urls) {
     $path_query = URI::Encode->new({double_encode => 0})->encode($path_query);
     
     # convert IDN to ACE
-    print "HOST: ",$host,"\n";
     $host = domain_to_ascii( $host );
     
     # now use prepared URL
     $url = $scheme.$host.$path_query;
-    
-    print $host,"\n";
 	
 	# HTML encode URL
 	my $encoded_url = encode_entities( $url );
