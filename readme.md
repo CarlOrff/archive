@@ -1,4 +1,4 @@
-# archive.pl v1.2
+# archive.pl
 
 *A script for archiving URL sets (HTML, PDF) in the [Internet Archive](https://archive.org).*
 
