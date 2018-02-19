@@ -56,15 +56,18 @@ use XML::Atom::SimpleFeed;
 # global variables
 ##################################################################################################
 
-my $botname = 'archive.pl/1.3';
+my $botname = 'archive.pl-1.4';
+my %urls;
 my @urls;
 my $author_delimiter = '/';
 
 # user agent string
-my $scripturl = 'https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/';
-my $ua_string = "Mozilla/5.0 (compatible; $botname; +$scripturl)";
+my $atomurl = "https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=$botname&ib_medium=atom&ib_source=outfile";
+my $htmlurl = "https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=$botname&ib_medium=html&ib_source=outfile";
+my $scripturl = 'http://bit.ly/2FbNxn0';
+my $ua_string = "Mozilla/5.0 (compatible; +$scripturl)";
 
-my $wayback_url = 'http://web-beta.archive.org/save/';
+my $wayback_url = 'http://web.archive.org/save/';
 
 # fetch options
 my %opts;
@@ -75,16 +78,16 @@ open_browser($wayback_url . $opts{u}) if length $opts{u} > 0 && $opts{s} && $opt
 
 my $creator = ($opts{c} && length $opts{c} > 0) ?  $opts{c} : "Ingram Braun";
 my $infile = ($opts{f} && length $opts{f} > 0) ?  $opts{f} : "urls.txt";
-my %scripturl = ($opts{u} && length $opts{u} > 0) ? ( 'rel' => 'self', 'href' => encode_entities($opts{u}), ) : ( 'href' => $scripturl, ) if $opts{a};
+my %atomurl = ($opts{u} && length $opts{u} > 0) ? ( 'rel' => 'self', 'href' => encode_entities($opts{u}), ) : ( 'href' => $atomurl, ) if $opts{a};
 
 my $outfile = ($opts{a}) ? XML::Atom::SimpleFeed->new(
-     id => $scripturl{href},
+     id => $atomurl{href},
      title   => 'Archived URLs',
-     link    => \%scripturl,
+     link    => \%atomurl,
      updated => DateTime::Format::W3CDTF->new()->format_datetime(DateTime->now), 
      author  => $creator, # needed since it is not sure that all entries have an author
      generator  => $botname,
- ) : "<!doctype html>\n<head>\n<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>\n<meta name='generator' content='$botname'>\n<link rel='help' href='$scripturl'>\n<title>$botname result</title>\n</head>\n<body>\n\n<ul>\n";
+ ) : "<!doctype html>\n<head>\n<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>\n<meta name='generator' content='$botname'>\n<link rel='help' href='$htmlurl'>\n<title>$botname result</title>\n</head>\n<body>\n\n<ul>\n";
 
 
 ##################################################################################################
@@ -94,11 +97,21 @@ my $outfile = ($opts{a}) ? XML::Atom::SimpleFeed->new(
 my $fh = FileHandle->new($infile, "r");
 binmode($fh, ":utf8");
 if (defined $fh) {
+	
 	while(<$fh>) {
 		push(@urls,split(/\n+/,$_));
 	}
+	
+	#remove UTF BOM
+	$urls[0] =~ s/^\x{FEFF}//;
+	$urls[0] =~ s/^\N{U+FEFF}//;
+	$urls[0] =~ s/^\N{ZERO WIDTH NO-BREAK SPACE}//;
+	$urls[0] =~ s/^\N{BOM}//;
+	
 	undef $fh;       # automatically closes the file
+
 }
+else { die "Could not open $infile"; }
 
 ##################################################################################################
 # initialize robot object
@@ -113,13 +126,33 @@ $ua->ssl_opts(  # we don't verify hostnames of TLS URLs
 $ua->rules(WWW::RobotRules->new($ua_string)); # obey robots.txt
 
 ##################################################################################################
-# loop through URLs
+# Do some checks on URLs
 ##################################################################################################
+
+# Save all size of twitter images
 
 foreach my $url (@urls) {
 
+	if ( $url =~ /(https:\/\/pbs\.twimg\.com\/media\/[\w-]+)(\.|\?format=)([a-z]{3})/i ) {
+	
+		$urls{"$1.$3"}++;
+		$urls{"$1.$3:large"}++;
+		$urls{"$1?format=$3"}++;
+		$urls{"$1?format=$3&name=small"}++;
+		$urls{"$1?format=$3&name=medium"}++;
+		$urls{"$1?format=$3&name=large"}++;
+	}
+	else { $urls{$url}++; }
+}
+
+##################################################################################################
+# loop through URLs
+##################################################################################################
+
+foreach my $url (keys %urls) {
+
 	# don't fetch empty URLs
-	next if length($url) < 1;
+	next if length $url < 1;
     
     # remove hash part:
     $url =~ s/#.+//;
@@ -149,7 +182,13 @@ foreach my $url (@urls) {
 	
 		print "successfull!\n";
 		
-		my($title, $description, $author, $language);
+		my($title, $description, $author, $language, $content);
+		
+		$content = $r->content;
+		
+		# Properties as lower case since Web::Scraper's contains()-method is case sensitive.
+		$content =~ s/(abstract|author|contributor|creator|decription|language|title)\s*(["'])/lc($1)$2/gi;
+		$content =~ s/(["'])\s*(dc|dcterms|og|twitter)[:\.]([a-z])/$1lc($2):$3/gi;
         	
 ##################################################################################################
 # HTML
@@ -157,12 +196,10 @@ foreach my $url (@urls) {
 
 		if ($r->header('content-type') =~ /(ht|x)ml/i) {
         
-            # contains() is case sensitive.
 			my $scraper = scraper {
 				# title
 				process_first '//meta[contains(@property,"og:title")]', "open_graph_title" => '@content';
-				process_first '//meta[contains(@name,"DC.title")]', "dublin_core_title" => '@content';
-				process_first '//meta[contains(@property,"dc:title")]', "dublin_core_title2" => '@content';
+				process_first '//meta[contains(@name,"dc:title")]', "dublin_core_title2" => '@content';
 				process_first '//meta[contains(@name,"twitter:title")]', "twitter_title" => '@content';
 				process_first '//h3[contains(@class,"post-title entry-title")]', "blogspot_title" => "TEXT"; # Google Blogger
 				process_first "title", "title" => "TEXT";
@@ -170,21 +207,15 @@ foreach my $url (@urls) {
 				process '//*[starts-with(@itemprop,"headlinie")]', "schema_title" => '@content';
 				# description
 				process_first '//meta[contains(@property,"og:description")]', "open_graph_description" => '@content';
-				process_first '//meta[contains(@name,"DC.description")]', "dublin_core_description" => '@content';
 				process_first '//meta[contains(@name,"dc:description")]', "dublin_core_description2" => '@content';
-				process_first '//meta[contains(@name,"DCTERMS.abstract")]', "dublin_core_abstract" => '@content';
-				process_first '//meta[contains(@property,"dcterms:abstract")]', "dublin_core_abstract2" => '@content';
+				process_first '//meta[contains(@name,"dcterms:abstract")]', "dublin_core_abstract2" => '@content';
 				process_first '//meta[contains(@name,"twitter:description")]', "twitter_description" => '@content';
 				process_first '//meta[starts-with(@name,"description")]', "meta_description" => '@content';
-				process_first '//meta[starts-with(@name,"Description")]', "meta_description2" => '@content';
-				# tscrap authors
+				# scrap authors
 				# we only look for Dublin Core and XML elements since Open Graph stores an URL, Twitter an account and Schema.Org needs enhanced parsing
-				process '//meta[contains(@name,"DC.creator")]', "dublin_core_author[]" => '@content';
-				process '//meta[contains(@name,"DC.contributor")]', "dublin_core_author[]" => '@content';
-				process '//meta[contains(@property,"dc:creator")]', "dublin_core_author2[]" => '@content';
-				process '//meta[contains(@property,"dc:contributor")]', "dublin_core_author2[]" => '@content';
-				process '//meta[starts-with(@name,"Creator")]', "meta_author[]" => '@content';
-				process '//meta[starts-with(@name,"Author")]', "meta_author[]" => '@content';
+				process '//meta[contains(@name,"dc:creator")]', "dublin_core_author2[]" => '@content';
+				process '//meta[contains(@name,"dc:author")]', "dublin_core_author2[]" => '@content';
+				process '//meta[contains(@name,"dc:contributor")]', "dublin_core_author2[]" => '@content';
 				process '//meta[starts-with(@name,"creator")]', "meta_author[]" => '@content';
 				process '//meta[starts-with(@name,"author")]', "meta_author[]" => '@content';
 				process "author", "xml_author[]" => "TEXT";
@@ -196,35 +227,35 @@ foreach my $url (@urls) {
 				process_first '//meta[contains(@http-equiv,"-language")]', "meta_lang" => '@content';
 				process_first '//meta[contains(@http-equiv,"-Language")]', "meta_lang2" => '@content';
 			};
-			my $scraped = $scraper->scrape($r);
-			#print Dumper($scraped);
+			my $scraper = $scraper->scrape($content);
+			#print Dumper($scraper);
 			
 			# we assume that social media titles are better than HTML titles
 			print "title ";
-			if (exists($scraped->{'open_graph_title'})) {
-				$title = $scraped->{'open_graph_title'};
+			if (check_scraped($scraper, 'open_graph_title')) {
+				$title = $scraper->{'open_graph_title'};
 			}
-			elsif (exists($scraped->{'twitter_title'})) {
-				$title = $scraped->{'twitter_title'};
+			elsif (check_scraped($scraper, 'twitter_title')) {
+				$title = $scraper->{'twitter_title'};
 			}
-			elsif (exists($scraped->{'dublin_core_title'})) {
-				$title = $scraped->{'dublin_core_title'};
+			elsif (check_scraped($scraper, 'dublin_core_title')) {
+				$title = $scraper->{'dublin_core_title'};
 			}
-			elsif (exists($scraped->{'dublin_core_title2'})) {
-				$title = $scraped->{'dublin_core_title2'};
+			elsif (check_scraped($scraper, 'dublin_core_title2')) {
+				$title = $scraper->{'dublin_core_title2'};
 			}
-			elsif (exists($scraped->{'blogspot_title'})) {
-				$title = $scraped->{'blogspot_title'};
+			elsif (check_scraped($scraper, 'blogspot_title')) {
+				$title = $scraper->{'blogspot_title'};
 			}
-			elsif (exists($scraped->{'h1'})) {
-				$title = $scraped->{'h1'};
+			elsif (check_scraped($scraper, 'h1')) {
+				$title = $scraper->{'h1'};
 			}
-			elsif (exists($scraped->{'schema_title'})) {
-				$title = $scraped->{'schema_title'};
+			elsif (check_scraped($scraper, 'schema_title')) {
+				$title = $scraper->{'schema_title'};
 			}
 			# the title element sometimes holds the site name
-			elsif (exists($scraped->{'title'})) {
-				$title = $scraped->{'title'};
+			elsif (check_scraped($scraper, 'title')) {
+				$title = $scraper->{'title'};
 			}
 			else {
 				$title = $url;
@@ -233,22 +264,22 @@ foreach my $url (@urls) {
 			
 			# we assume that the longest description is the best
 			print "description ";
-			$description = reduce { length $a > length $b ? $a : $b } map {$_ if defined $_} ($scraped->{'open_graph_description'},$scraped->{'dublin_core_description'},$scraped->{'dublin_core_description2'},$scraped->{'twitter_description'},$scraped->{'dublin_core_abstract'},$scraped->{'dublin_core_abstract2'},$scraped->{'meta_description'},$scraped->{'meta_description2'});
+			$description = reduce { length $a > length $b ? $a : $b } map {$_ if defined $_} ($scraper->{'open_graph_description'},$scraper->{'dublin_core_description'},$scraper->{'dublin_core_description2'},$scraper->{'twitter_description'},$scraper->{'dublin_core_abstract'},$scraper->{'dublin_core_abstract2'},$scraper->{'meta_description'},$scraper->{'meta_description2'});
 			print length($description), " characters\n";
 			
 			# join authors
 			print "authors ";
-			if (exists($scraped->{'dublin_core_author'})) {
-				$author = join($author_delimiter,@{$scraped->{'dublin_core_author'}});
+			if (check_scraped($scraper, 'dublin_core_author')) {
+				$author = join($author_delimiter,@{$scraper->{'dublin_core_author'}});
 			}
-			if (exists($scraped->{'dublin_core_author2'})) {
-				$author = join($author_delimiter,@{$scraped->{'dublin_core_author2'}});
+			if (check_scraped($scraper, 'dublin_core_author2')) {
+				$author = join($author_delimiter,@{$scraper->{'dublin_core_author2'}});
 			}
-			elsif (exists($scraped->{'meta_author'})) {
-				$author = join($author_delimiter,@{$scraped->{'meta_author'}});
+			elsif (check_scraped($scraper, 'meta_author')) {
+				$author = join($author_delimiter,@{$scraper->{'meta_author'}});
 			}
-			elsif (exists($scraped->{'xml_author'})) {
-				$author = join($author_delimiter,@{$scraped->{'xml_author'}}),
+			elsif (check_scraped($scraper, 'xml_author')) {
+				$author = join($author_delimiter,@{$scraper->{'xml_author'}}),
 			}
 			else {
 				$author = '';
@@ -257,20 +288,20 @@ foreach my $url (@urls) {
 			
 			# record language
 			print "language ";
-			if (defined $scraped->{'html_lang'}) {
-				$language = $scraped->{'html_lang'};
+			if (check_scraped($scraper, 'html_lang')) {
+				$language = $scraper->{'html_lang'};
 			}
-			elsif (defined $scraped->{'title_lang'}) {
-				$language = $scraped->{'title_lang'};
+			elsif (check_scraped($scraper, 'title_lang')) {
+				$language = $scraper->{'title_lang'};
 			}
-			elsif (defined $scraped->{'body_lang'}) {
-				$language = $scraped->{'body_lang'};
+			elsif (check_scraped($scraper, 'body_lang')) {
+				$language = $scraper->{'body_lang'};
 			}
-			elsif (defined $scraped->{'meta_lang'}) {
-				$language = $scraped->{'meta_lang'};
+			elsif (check_scraped($scraper, 'meta_lang')) {
+				$language = $scraper->{'meta_lang'};
 			}
-			elsif (defined $scraped->{'meta_lang2'}) {
-				$language = $scraped->{'meta_lang2'};
+			elsif (check_scraped($scraper, 'meta_lang2')) {
+				$language = $scraper->{'meta_lang2'};
 			}
 			else {
 				$language = '';
@@ -298,7 +329,6 @@ foreach my $url (@urls) {
 
 		elsif ($r->header('content-type') =~ /pdf$/i) {
         
-		my $content = $r->content;
 		$content =~ s/\n//g;
 
 			# PDF metadata are stored in plain text or XML, so we can process them by common string operations.
@@ -306,15 +336,15 @@ foreach my $url (@urls) {
 			# Find title
 			print "title ";
 			# try PDF core
-			if ($content =~ /\/Title\s*\((.+?)\)/) {
+			if ($content =~ /\/Title\s*?\((.*?)\)/ && length $1 > 0) {
 				$title = $1;
 			}
 			# try Dublin Core as attribute
-			elsif ($content =~ /\bdc\:title\s?=\s?("(.+?)"|'(.+?)')/i) {
+			elsif ($content =~ /\bdc\:title\s?=\s?("(.+?)"|'(.+?)')/i && length $+ > 0) {
 				$title = $+;
 			}
 			# try Dublin Core as tag
-			elsif ($content =~ /<dc\:title>\s*(.*?)\s*<\/dc\:title>/i) {
+			elsif ($content =~ /<dc\:title>\s*(.*?)\s*<\/dc\:title>/i && length $1 > 0) {
 				$title = $1;
 				$title =~ s/\s*<\/?[a-z].*?>\s*//g;
 			}
@@ -326,7 +356,7 @@ foreach my $url (@urls) {
 			# Find description
 			print "description ";
 			# try Dublin Core
-			if ($content =~ /\bdc\:description\s?=\s?("(.+?)"|'(.+?)')/i) {
+			if ($content =~ /\bdc\:description\s?=\s?("(.+?)"|'(.+?)')/i && length $+ > 0) {
 				$description = $+;
 			}
 			else {
@@ -339,12 +369,12 @@ foreach my $url (@urls) {
 			my %authors;
 			
 			# try PDF core
-			if ($content =~ /\/Author\s*\((.+?)\)/) {
+			if ($content =~ /\/Author\s*\((.*?)\)/ && length $+ > 0) {
 				$authors{$1}++;
 			}
 			# try XAP
 			if (scalar keys %authors == 0) {
-				while ($content =~ /\bxap\:Author\s?=\s?("(.+?)"|'(.+?)')/gi) {
+				while ($content =~ /\bxap\:Author\s?=\s?("(.+?)"|'(.+?)')/gi && length $+ > 0) {
 					my $hit = $+;
 					chop($hit);
 					$hit =~ s/^.+?["']//;
@@ -354,7 +384,7 @@ foreach my $url (@urls) {
 			}
 			# try Dublin Core as attribute
 			if (scalar keys %authors == 0) {
-				while ($content =~ /\bdc\:c(rea|ontribu)tor\s?=\s?("(.+?)"|'(.+?)')/gi) {
+				while ($content =~ /\bdc\:c(rea|ontribu)tor\s?=\s?("(.+?)"|'(.+?)')/gi && length $+ > 0) {
 					my $hit = $+;
 					chop($hit);
 					$hit =~ s/^.+?["']//;
@@ -364,7 +394,7 @@ foreach my $url (@urls) {
 			}
 			# try Dublin Core as tag
 			if (scalar keys %authors == 0) {
-				while ($content =~ /<dc\:c(rea|ontribu)tor>\s*(.*?)\s*<\/dc\:c(rea|ontribu)tor>/gi) {
+				while ($content =~ /<dc\:c(rea|ontribu)tor>\s*(.*?)\s*<\/dc\:c(rea|ontribu)tor>/gi && length $2 > 0) {
 					my $hit = $2;
 					$hit =~ s/\s*<\/?[a-z].*?>\s*//g;
 					last if exists($authors{$hit}); # avoid infinite loop
@@ -373,7 +403,7 @@ foreach my $url (@urls) {
 			}
 			# try PDF/X
 			if (scalar keys %authors == 0) {
-				while ($content =~ /<pdfx\:myAuthorName>(.+?)<\/pdfx\:myAuthorName>/gi) {
+				while ($content =~ /<pdfx\:myAuthorName>(.+?)<\/pdfx\:myAuthorName>/gi && length $+ > 0) {
 					my $hit = $+;
 					$hit =~ s/<.?pdfx\:myAuthorName>//i;
 					last if exists($authors{$hit}); # avoid infinite loop
@@ -450,7 +480,7 @@ foreach my $url (@urls) {
 ##################################################################################################
 
 # close list
-$outfile .= "</ul>\n\n</body>" if !$opts{a};
+$outfile .= "</ul>\n<hr><p>Generated with <a href='$htmlurl'>$botname</a></p></body>" if !$opts{a};
 
 # create file name
 my $out = ($opts{a}) ? 'archive.atom' : 'ia' . time() . '.html';
@@ -528,4 +558,11 @@ sub HTML_format_description {
 	return $_[0] if length $_[0] == 0; # is empty
     my $str = clean_text($_[0]);
 	return "<br />\n" . encode_entities($str);
+}
+
+#checks if a scraper result is true
+sub check_scraped {
+	my $scraped = shift;
+	my $tag = shift;
+	return exists ($scraped->{$tag}) && length $scraped->{$tag} > 0;
 }
