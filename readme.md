@@ -2,7 +2,7 @@
 
 *A script for archiving URL sets (HTML, PDF) in the [Internet Archive](https://archive.org).*
 
-Copyright (C) 2015-2017 Ingram Braun (<https://ingram-braun.net/>)
+Copyright (C) 2015-2018 Ingram Braun (<https://ingram-braun.net/>)
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
@@ -40,6 +40,13 @@ There are several optional switches
 
 ## Changelog
 
+### v1.4
+ - Enhanced metadata scraping.
+ - Archive images from Twitter in different sizes.
+ - Added link to project page to outfile.
+ - Remove UTF-8 BOM from infile.
+ - User agent avoids strings `archiv` and `wayback`.
+
 ### v1.3
  - Debugging messages removed.
  - Archive.Org URL changed.
@@ -57,7 +64,7 @@ There are several optional switches
 
 ## Project Page
 
-<https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/>
+[https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/](https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=$archive-pl-1.4&ib_medium=repository&ib_source=readme)
 
 ## Windows Binaries
 
