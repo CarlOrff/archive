@@ -43,7 +43,7 @@ There are several optional switches
 ### v1.4
  - Enhanced metadata scraping.
  - Archive images from Twitter in different sizes.
- - Added link to project page to outfile.
+ - Added project page link to outfile.
  - Remove UTF-8 BOM from infile.
  - User agent avoids strings `archiv` and `wayback`.
 
