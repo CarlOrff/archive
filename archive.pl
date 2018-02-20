@@ -67,7 +67,7 @@ my $htmlurl = "https://ingram-braun.net/public/programming/perl/wayback-url-robo
 my $scripturl = 'http://bit.ly/2FbNxn0';
 my $ua_string = "Mozilla/5.0 (compatible; +$scripturl)";
 
-my $wayback_url = 'http://web.archive.org/save/';
+my $wayback_url = 'https://web.archive.org/save/';
 
 # fetch options
 my %opts;

@@ -41,13 +41,16 @@ There are several optional switches
 ## Changelog
 
 ### v1.4
+
  - Enhanced metadata scraping.
  - Archive images from Twitter in different sizes.
  - Added project page link to outfile.
  - Remove UTF-8 BOM from infile.
  - User agent avoids strings `archiv` and `wayback`.
+ - Internet Archive via TLS URL.
 
 ### v1.3
+
  - Debugging messages removed.
  - Archive.Org URL changed.
 
