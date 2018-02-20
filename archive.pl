@@ -33,8 +33,9 @@
 use strict;
 use utf8::all;
 
+#use diagnostics;
 #use warnings;
-use Data::Dumper;
+#use Data::Dumper;
 
 use Browser::Open qw( open_browser );
 use DateTime;
