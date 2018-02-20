@@ -458,7 +458,7 @@ foreach my $url (@urls) {
 			
 			# Get thumb size
 			my($w, $h) = html_dim( image_info(\$thumb) );
-			$description = '<img ' . $w . $h . ' src="data:image/pgn;base64,' .  encode_base64($thumb) . '">' if length $thumb > 0;
+			$description = '<img ' . $w . $h . ' src="data:image/pgn;base64,' .  encode_base64($thumb) . '"/>' if length $thumb > 0;
 		
 			# Delete thumbnail
 			unlink $imgfile;
@@ -466,7 +466,7 @@ foreach my $url (@urls) {
 			if ($opts{a}) {
                 $outfile->add_entry(
                     link => $encoded_url,
-                    summary => "![CDATA[" . $description . "]]>",
+                    summary => $description,
                     title => encode($title),
                 );
             }
@@ -601,7 +601,7 @@ sub clean_text {
 sub encode {
 	return $_[0] if length $_[0] == 0; # is empty
     my $str = clean_text($_[0]);
-	return encode_entities($str);
+	return $str;
 }
 
 # arg 1: title string
