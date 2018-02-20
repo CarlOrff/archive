@@ -34,17 +34,21 @@ use strict;
 use utf8::all;
 
 #use warnings;
-#use Data::Dumper;
+use Data::Dumper;
 
 use Browser::Open qw( open_browser );
 use DateTime;
 use DateTime::Format::W3CDTF;
 use FileHandle;
+use GD;
 use Getopt::Std;
 use HTML::Entities;
 use HTML::Strip;
+use Image::Info qw( dim image_info html_dim );
+use Image::Thumbnail;
 use List::Util qw( reduce );
 use LWP::RobotUA;
+use MIME::Base64;
 use Net::FTP;
 use Net::IDN::Encode 'domain_to_ascii';
 use URI::Encode;
@@ -57,7 +61,6 @@ use XML::Atom::SimpleFeed;
 ##################################################################################################
 
 my $botname = 'archive.pl-1.4';
-my %urls;
 my @urls;
 my $author_delimiter = '/';
 
@@ -125,31 +128,13 @@ $ua->ssl_opts(  # we don't verify hostnames of TLS URLs
 );
 $ua->rules(WWW::RobotRules->new($ua_string)); # obey robots.txt
 
-##################################################################################################
-# Do some checks on URLs
-##################################################################################################
-
 # Save all size of twitter images
-
-foreach my $url (@urls) {
-
-	if ( $url =~ /(https:\/\/pbs\.twimg\.com\/media\/[\w-]+)(\.|\?format=)([a-z]{3})/i ) {
-	
-		$urls{"$1.$3"}++;
-		$urls{"$1.$3:large"}++;
-		$urls{"$1?format=$3"}++;
-		$urls{"$1?format=$3&name=small"}++;
-		$urls{"$1?format=$3&name=medium"}++;
-		$urls{"$1?format=$3&name=large"}++;
-	}
-	else { $urls{$url}++; }
-}
 
 ##################################################################################################
 # loop through URLs
 ##################################################################################################
 
-foreach my $url (keys %urls) {
+foreach my $url (@urls) {
 
 	# don't fetch empty URLs
 	next if length $url < 1;
@@ -185,16 +170,16 @@ foreach my $url (keys %urls) {
 		my($title, $description, $author, $language, $content);
 		
 		$content = $r->content;
-		
-		# Properties as lower case since Web::Scraper's contains()-method is case sensitive.
-		$content =~ s/(abstract|author|contributor|creator|decription|language|title)\s*(["'])/lc($1)$2/gi;
-		$content =~ s/(["'])\s*(dc|dcterms|og|twitter)[:\.]([a-z])/$1lc($2):$3/gi;
         	
 ##################################################################################################
 # HTML
 ##################################################################################################
 
 		if ($r->header('content-type') =~ /(ht|x)ml/i) {
+		
+			# Properties as lower case since Web::Scraper's contains()-method is case sensitive.
+			$content =~ s/(abstract|author|contributor|creator|decription|language|title)\s*(["'])/lc($1)$2/gi;
+			$content =~ s/(["'])\s*(dc|dcterms|og|twitter)[:\.]([a-z])/$1lc($2):$3/gi;
         
 			my $scraper = scraper {
 				# title
@@ -425,24 +410,81 @@ foreach my $url (keys %urls) {
                     author => encode($author),
                     link => $encoded_url,
                     summary => encode($description),
-                    title => encode($title),
+                    title => encode($title . ' [PDF]'),
                 );
             }
             else {
-                $outfile .= '<li>' . (length $author > 0 ? encode($author).' ' : '') . '<a href="' . $encoded_url . '" type="application/pdf">' . HTML_format_title($title) . '</a>&nbsp;<sup>[PDF]</sup>' . HTML_format_description($description) . "</li>\n";
+                $outfile .= '<li>PDF:&nbsp;' . (length $author > 0 ? encode($author).' ' : '') . '<a href="' . $encoded_url . '" type="application/pdf">' . HTML_format_title($title) . '</a>&nbsp;' . HTML_format_description($description) . "</li>\n";
             }
 		}
 		
-		# other MIME types
+##################################################################################################
+# Images
+##################################################################################################
+		elsif ($r->header('content-type') =~ /image/) {
+				
+			my $origimg = image_info(\$content);
+			my($width,$height) = dim($origimg);
+			my $imgfile = 'thumb.png';
+			my $thumb;
+			
+			# if image type is not known to Image::Info
+			$origimg->{'file_type'} = 'type?' if exists( $origimg->{'error'} );
+			
+			# make title
+			$title = "IMAGE (" . $origimg->{'file_type'} . "$width × $height) $encoded_url";
+			
+			my $gdObj = new GD::Image($content);
+			
+			# make thumbnail
+			new Image::Thumbnail(
+				size       => 120,  # length of longest side
+				create     => 1,
+				input      => $gdObj,
+				outputpath => $imgfile,
+				outputtype => 'png',
+				module => 'GD',
+			) if defined $gdObj;
+
+	
+			# Open thumb and encode it
+			my $img = FileHandle->new($imgfile, '<:raw');
+			if (defined $img) {
+			
+				read($img, $thumb, -s $imgfile) ;
+				undef $img;
+			}
+			
+			# Get thumb size
+			my($w, $h) = html_dim( image_info(\$thumb) );
+			$description = '<img ' . $w . $h . ' src="data:image/pgn;base64,' .  encode_base64($thumb) . '">' if length $thumb > 0;
+		
+			# Delete thumbnail
+			unlink $imgfile;
+			
+			if ($opts{a}) {
+                $outfile->add_entry(
+                    link => $encoded_url,
+                    summary => "![CDATA[" . $description . "]]>",
+                    title => encode($title),
+                );
+            }
+			else {
+                $outfile .= '<li><a href="' . $encoded_url . '" type="' . $r->header('content-type') . '">' . encode_entities($title) . '</a>&nbsp;' . $description . "</li>\n";
+            }
+		}
+##################################################################################################
+# Other MIME types
+##################################################################################################
 		else {
         
-            my $warning = 'WARNING: unknown MIME type ' . $encoded_url;
+            my $warning = 'Unknown MIME type ' . $encoded_url;
 		
 			if ($opts{a}) {
-                $outfile->add_entry(link => $encoded_url, title => $warning);
+                $outfile->add_entry(link => $encoded_url, title => $warning, summary => $r->header('content-type'));
             }
             else {
-                $outfile .= '<li><a href="' . $encoded_url . '">' . $warning . '</a></li>\n';
+                $outfile .= '<li><a href="' . $encoded_url . '">' . $warning . '</a><br>' . $r->header('content-type') . "</li>\n";
             }
 		}
 		
@@ -470,8 +512,25 @@ foreach my $url (keys %urls) {
 	print "submit to Internet Archive\n";
     # We must escape the ampersands in parameter lists on Windows computers due to a bug
     # in Browser:Open https://rt.cpan.org/Ticket/Display.html?id=117917&results=035ab18171a4a673f347e0ca5a8629f4
-    $url =~ s/(?<!\^)&/^&/g if index($^O,'MSWin32') > -1;
-	open_browser($wayback_url.$url);
+	
+	my %urls; # here we can save known URL formats in different variants, fi. images in different sizes.
+
+	# Twitter images in different sizes
+	if ( $url =~ /(https:\/\/pbs\.twimg\.com\/media\/[\w-]+)(\.|\?format=)([a-z]{3})/i ) {
+	
+		$urls{"$1.$3"}++;
+		$urls{"$1.$3:large"}++;
+		$urls{"$1?format=$3"}++;
+		$urls{"$1?format=$3&name=small"}++;
+		$urls{"$1?format=$3&name=medium"}++;
+		$urls{"$1?format=$3&name=large"}++;
+	}
+	else { $urls{$url}++; }
+	
+	foreach my $ia (keys %urls) {
+		$ia =~ s/(?<!\^)&/^&/g if index($^O,'MSWin32') > -1;
+		open_browser($wayback_url.$ia);
+	}
 	
 } # main loop
 

@@ -48,6 +48,7 @@ There are several optional switches
  - Remove UTF-8 BOM from infile.
  - User agent avoids strings `archiv` and `wayback`.
  - Internet Archive via TLS URL.
+ - Thumbnail if URL points to an an image.
 
 ### v1.3
 
