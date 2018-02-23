@@ -179,6 +179,7 @@ foreach my $url (@urls) {
 		if ($r->header('content-type') =~ /(ht|x)ml/i) {
 		
 			# Properties as lower case since Web::Scraper's contains()-method is case sensitive.
+			utf8::decode($content);
 			$content =~ s/(abstract|author|contributor|creator|decription|language|title)\s*(["'])/lc($1)$2/gi;
 			$content =~ s/(["'])\s*(dc|dcterms|og|twitter)[:\.]([a-z])/$1lc($2):$3/gi;
         
@@ -315,6 +316,7 @@ foreach my $url (@urls) {
 
 		elsif ($r->header('content-type') =~ /pdf$/i) {
         
+		utf8::decode($content);
 		$content =~ s/\n//g;
 
 			# PDF metadata are stored in plain text or XML, so we can process them by common string operations.
