@@ -1,12 +1,7 @@
 #!/usr/bin/perl
 -T;
 
-##################################################################################################
-#
-# archive.pl
-#
-# (c) 2015-2017 by Ingram Braun (https://ingram-braun.net/)
-#
+#####a#############################################################################################
 # PURPOSE: extracts metada from HTML and PDF URLs, stores them in the Internet Archive
 # (https://archive.org/) and generates a report (HTML or Atom) that is suitable for posting it 
 # to a blog or as Atom feed. The report can get ftp'ed.
@@ -22,6 +17,7 @@
 #               -p <password>   FTP password
 #               -s              Save feed in Wayback machine (feed only)
 #               -u <URL>        Feed URL (feed only)
+#               -w              Use wget (PowerShell on Windows) instead of Browser::Open for Wayback URL downloads. Highly recommended!
 #
 #
 # LICENSE: GNU GENERAL PUBLIC LICENSE v.3
@@ -31,54 +27,63 @@
 ##################################################################################################
 
 use strict;
-use utf8::all;
+
 
 #use diagnostics;
 #use warnings;
-#use Data::Dumper;
+use feature 'say';
 
 use Browser::Open qw( open_browser );
+use Data::Dumper;
 use DateTime;
 use DateTime::Format::W3CDTF;
 use FileHandle;
+use FindBin ();
 use GD;
 use Getopt::Std;
 use HTML::Entities;
 use HTML::Strip;
 use Image::Info qw( dim image_info html_dim );
 use Image::Thumbnail;
+use JSON::XS qw ( decode_json );
 use List::Util qw( reduce );
 use LWP::RobotUA;
 use MIME::Base64;
 use Net::FTP;
 use Net::IDN::Encode 'domain_to_ascii';
+use POSIX qw(strftime);
+use Scalar::Util;
+use Try::Tiny;
+use URI;
 use URI::Encode;
 use WWW::RobotRules;
 use Web::Scraper;
 use XML::Atom::SimpleFeed;
 
+require Win32::PowerShell::IPC; # load at runtime if on Windows
+
 ##################################################################################################
 # global variables
 ##################################################################################################
 
-my $botname = 'archive.pl-1.4';
+my $botname = 'archive.pl-1.5';
 my @urls;
 my $author_delimiter = '/';
 
 # user agent string
 my $atomurl = "https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=$botname&ib_medium=atom&ib_source=outfile";
 my $htmlurl = "https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=$botname&ib_medium=html&ib_source=outfile";
-my $scripturl = 'http://bit.ly/2FbNxn0';
+my $scripturl = 'http://bit.ly/2HDWSI1';
 my $ua_string = "Mozilla/5.0 (compatible; +$scripturl)";
 
 my $wayback_url = 'https://web.archive.org/save/';
 
 # fetch options
 my %opts;
-getopts('ac:d:f:n:o:p:su:', \%opts);
+getopts('ac:d:f:n:o:p:su:w', \%opts);
 
 # save old feed
-open_browser($wayback_url . $opts{u}) if length $opts{u} > 0 && $opts{s} && $opts{a};
+push( @urls, $opts{u} ) if length $opts{u} > 0 && $opts{s} && $opts{a};
 
 my $creator = ($opts{c} && length $opts{c} > 0) ?  $opts{c} : "Ingram Braun";
 my $infile = ($opts{f} && length $opts{f} > 0) ?  $opts{f} : "urls.txt";
@@ -135,13 +140,29 @@ $ua->rules(WWW::RobotRules->new($ua_string)); # obey robots.txt
 # loop through URLs
 ##################################################################################################
 
+my $count = 0;
+my %urls_seen;
+
 foreach my $url (@urls) {
 
 	# don't fetch empty URLs
-	next if length $url < 1;
-    
-    # remove hash part:
-    $url =~ s/#.+//;
+	next if length $url < 1 || exists( $urls_seen{ $url } ); #avoid empty lines or duplicate URLs
+	
+	say "Start processing task #" . ++$count;
+	$urls_seen{ $url }++;    #avoid duplicate URLs
+	
+	my $parsed_url = new URI $url;
+	
+	my $scheme = $parsed_url->scheme;
+	my $host = $parsed_url->host;
+	my $path = $parsed_url->path;
+	my $query = $parsed_url->query;
+	my $path_query = $path;
+	$path_query .= '?'.$query if length $query > 0;
+	my $hash = $parsed_url->fragment;	
+	
+	# remove hash part:
+    $url = $scheme.'://'.$host.$path_query;
     
     $url =~ /(.+?\:\/\/)(.+?)($|\/.*)/;
     my ($scheme,$host,$path_query) = ($1,$2,$3);
@@ -513,27 +534,45 @@ foreach my $url (@urls) {
 ##################################################################################################
 
 	print "submit to Internet Archive\n";
-    # We must escape the ampersands in parameter lists on Windows computers due to a bug
-    # in Browser:Open https://rt.cpan.org/Ticket/Display.html?id=117917&results=035ab18171a4a673f347e0ca5a8629f4
 	
 	my %urls; # here we can save known URL formats in different variants, fi. images in different sizes.
 
 	# Twitter images in different sizes
-	if ( $url =~ /(https:\/\/pbs\.twimg\.com\/media\/[\w-]+)(\.|\?format=)([a-z]{3})/i ) {
+	if ( $host eq 'pbs.twimg.com' && $path_query =~ /^(\/media\/[\w-]+)(\.|\?format=)([a-z]{3})/i ) {
 	
-		$urls{"$1.$3"}++;
-		$urls{"$1.$3:large"}++;
-		$urls{"$1?format=$3"}++;
-		$urls{"$1?format=$3&name=small"}++;
-		$urls{"$1?format=$3&name=medium"}++;
-		$urls{"$1?format=$3&name=large"}++;
+		$urls{"$scheme$host$1.$3"}++;
+		$urls{"$scheme$host$1.$3:large"}++;
+		$urls{"$scheme$host$1.$3:medium"}++;
+		$urls{"$scheme$host$1.$3:small"}++;
+		$urls{"$scheme$host$1?format=$3"}++;
+		$urls{"$scheme$host$1?format=$3&name=small"}++;
+		$urls{"$scheme$host$1?format=$3&name=medium"}++;
+		$urls{"$scheme$host$1?format=$3&name=large"}++;
 	}
 	else { $urls{$url}++; }
 	
-	foreach my $ia (keys %urls) {
-		$ia =~ s/(?<!\^)&/^&/g if index($^O,'MSWin32') > -1;
-		open_browser($wayback_url.$ia);
-	}
+	foreach ( keys %urls ) { 
+	
+		my $available = get_wayback_available( $_ );
+		
+		say "Available in Wayback Machine:";
+		if ( 'HASH' eq Scalar::Util::reftype($available) ) {
+			say "\tURL: " . $$available{url} if exists( $$available{url} );
+			say "\tavailable: " . $$available{archived_snapshots}{closest}{available} if exists( $$available{archived_snapshots}{closest}{available} );
+			say "\tstatus: " . $$available{archived_snapshots}{closest}{status} if exists( $$available{archived_snapshots}{closest}{status} );
+			if (exists( $$available{archived_snapshots}{closest}{timestamp} ) ) {
+				$$available{archived_snapshots}{closest}{timestamp} =~ s/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/$3.$2.$1 $4:$5:$6/;
+				say "\tclosest: " . $$available{archived_snapshots}{closest}{timestamp};
+			}
+		}
+		else {
+			say "\tCan't check: $available ";
+		}
+	
+		download_wayback( $_ );
+	} 
+	
+	say "****************************************************************************************\n";
 	
 } # main loop
 
@@ -627,4 +666,88 @@ sub check_scraped {
 	my $scraped = shift;
 	my $tag = shift;
 	return exists ($scraped->{$tag}) && length $scraped->{$tag} > 0;
+}
+
+sub download_wayback
+{	
+	my $download = $wayback_url . $_[0];
+	
+	if ( $opts{w} )	{
+		
+		if ($^O eq 'MSWin32') {
+		
+			my $downloadfile = 'ia_download.dat';
+			my $ps = Win32::PowerShell::IPC->new( );
+			my $msg;
+			my $run = 0;
+			# repeat downloads as long as there are no HTTP 50x errors.
+			do {
+				$msg = $ps->run_command( get_ps_download_cmd( $download , $downloadfile ) );
+				$run ++;
+			} while ($msg =~ /\(400\)|\(50\d\)|\bTime\s?out\b/i && $run < 10);
+			say $msg;
+			say "tried $run times";
+			say 'Download size: ' . -s $downloadfile;
+			$ps->run_command( 'del ' . $downloadfile );
+		}
+		else {
+		
+			# --tries and --user-agent do not work with older versions.
+			exec( 'wget ' . $download )};
+	}
+	else {
+	
+		open_browser($download);
+	}
+}
+
+# works only with PowerShell at the time being
+# downloads the available API of URL in arg1
+# returns hashref to decoded JSON or error message
+sub get_wayback_available
+{
+
+	my $av_url = new URI $_[0];
+	my $av_path_query = $av_url->path;
+	$av_path_query .= '?'.$av_url->query if length $av_url->query > 0;
+
+	my $download = 'https://archive.org/wayback/available?url=' . $av_url->host . $av_path_query;
+	my $json = '{}';
+	
+	if ( $opts{w} )	{
+		
+		if ($^O eq 'MSWin32') {			
+		
+			my $ps = Win32::PowerShell::IPC->new();
+			my $downloadfile = 'ia_available.json';
+			$ps->run_command( get_ps_download_cmd( $download , $downloadfile ) );
+			my $dwld = FileHandle->new($downloadfile, "r");
+			if (defined $dwld) {
+				
+				read( $dwld, $json,  -s $downloadfile );
+				undef $dwld;       # automatically closes the file
+			}
+			else {say "$dwld not opened: $!";}
+
+			$ps->run_command( 'del ' . $downloadfile )
+		}
+	}
+
+	local $a;
+	eval { $json = decode_json $json };
+	return $a if $a;
+	return $json;
+}
+
+# Builds a download command for MS PowerShell.
+#arg 1 = download URL
+#arg 2 = download file
+sub get_ps_download_cmd
+{
+	my $download_url = shift;
+	my $download_file = shift;
+	
+	$download_url =~ s/&/%26/g;
+	
+	return "(new-object System.Net.WebClient).Downloadfile(\"$download_url\", \"$download_file\");";
 }

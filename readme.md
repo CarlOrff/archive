@@ -40,6 +40,11 @@ There are several optional switches
 
 ## Changelog
 
+### v1.5
+
+- supports `wget` and `PowerShell` (w flag).
+- displays the closest Wayback copy date.
+
 ### v1.4
 
  - Enhanced metadata scraping.
@@ -48,7 +53,7 @@ There are several optional switches
  - Remove UTF-8 BOM from infile.
  - User agent avoids strings `archiv` and `wayback`.
  - Internet Archive via TLS URL.
- - Thumbnail if URL points to an an image.
+ - Thumbnail if URL points to an image.
 
 ### v1.3
 
