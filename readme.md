@@ -34,16 +34,20 @@ There are several optional switches
 
 `-p <password>` FTP password
 
-`-s` Save feed in Wayback machine (feed only)
+`-s` save feed in Wayback machine (feed only)
 
 `-u <URL>` feed URL (feed only)
+
+`-w` use wget (PowerShell on Windows)
 
 ## Changelog
 
 ### v1.5
 
-- supports `wget` and `PowerShell` (w flag).
-- displays the closest Wayback copy date.
+- Supports `wget` and `PowerShell` (w flag).
+- Displays the closest Wayback copy date.
+- Better URL parsing.
+- Windows executable only 64 bit since not all modules install properly on 32.
 
 ### v1.4
 
