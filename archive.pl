@@ -8,16 +8,20 @@
 #
 # USAGE: store URLs as break-separated list in file urls.txt and start archive.pl
 #    Optional arguments:
-#               -a              Atom feed instead of HTML output
-#               -c <creator>    Name of the feed author (feed only)
-#               -d <path>       FTP path
-#               -f <filename>   Other input file name than urls.txt
-#               -n <username>   FTP user
-#               -o <host>       FTP host
-#               -p <password>   FTP password
-#               -s              Save feed in Wayback machine (feed only)
-#               -u <URL>        Feed URL (feed only)
-#               -w              Use wget (PowerShell on Windows) instead of Browser::Open for Wayback URL downloads. Highly recommended!
+#               -a                        Atom feed instead of HTML output
+#               -c <creator>              Name of the feed author (feed only)
+#               -d <path>                 FTP path
+#               -f <filename>             Other input file name than urls.txt
+#               -k <consumer key>         Twitter consumer key
+#               -n <username>             FTP user
+#               -o <host>                 FTP host
+#               -p <password>             FTP password
+#               -s                        Save feed in Wayback machine (feed only)
+#               -t <access token>         Twitter access token
+#               -u <URL>                  Feed URL (feed only)
+#               -w                        Use wget (PowerShell on Windows) instead of Browser::Open for Wayback URL downloads. Highly recommended!
+#               -x <secret consumer key>  Twitter secret consumer key
+#               -y <secret access token> Twitter secret access token
 #
 #
 # LICENSE: GNU GENERAL PUBLIC LICENSE v.3
@@ -32,6 +36,7 @@ use strict;
 #use diagnostics;
 #use warnings;
 use feature 'say';
+use utf8;
 
 use Browser::Open qw( open_browser );
 use Data::Dumper;
@@ -51,6 +56,7 @@ use LWP::RobotUA;
 use MIME::Base64;
 use Net::FTP;
 use Net::IDN::Encode 'domain_to_ascii';
+use Net::Twitter;
 use POSIX qw(strftime);
 use Scalar::Util;
 use Try::Tiny;
@@ -66,21 +72,21 @@ require Win32::PowerShell::IPC; # load at runtime if on Windows
 # global variables
 ##################################################################################################
 
-my $botname = 'archive.pl-1.5';
+my $botname = 'archive.pl-1.7';
 my @urls;
 my $author_delimiter = '/';
 
 # user agent string
 my $atomurl = "https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=$botname&ib_medium=atom&ib_source=outfile";
 my $htmlurl = "https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=$botname&ib_medium=html&ib_source=outfile";
-my $scripturl = 'http://bit.ly/2HDWSI1';
+my $scripturl = 'http://bit.ly/2BoS70P';
 my $ua_string = "Mozilla/5.0 (compatible; +$scripturl)";
 
 my $wayback_url = 'https://web.archive.org/save/';
 
 # fetch options
 my %opts;
-getopts('ac:d:f:n:o:p:su:w', \%opts);
+getopts('ac:d:f:k:n:o:p:st:u:wx:y:', \%opts);
 
 # save old feed
 push( @urls, $opts{u} ) if length $opts{u} > 0 && $opts{s} && $opts{a};
@@ -98,27 +104,37 @@ my $outfile = ($opts{a}) ? XML::Atom::SimpleFeed->new(
      generator  => $botname,
  ) : "<!doctype html>\n<head>\n<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>\n<meta name='generator' content='$botname'>\n<link rel='help' href='$htmlurl'>\n<title>$botname result</title>\n</head>\n<body>\n\n<ul>\n";
 
+ # initiate Twitter object
+ my $nt  = ( $opts{k} && (length $opts{k} > 0) && $opts{t} && (length $opts{t} > 0) && $opts{x} && (length $opts{x} > 0) && $opts{y} && (length $opts{y} > 0) ) ? Net::Twitter->new(
+    traits   => [qw/API::RESTv1_1/],
+    consumer_key        => $opts{k},
+    consumer_secret     => $opts{x},
+    access_token        => $opts{t},
+    access_token_secret => $opts{y},
+) : 0;
+
 
 ##################################################################################################
 # read URL list from file (line break separated list)
 ##################################################################################################
 
 my $fh = FileHandle->new($infile, "r");
-binmode($fh, ":utf8");
+binmode($fh, ":encoding(UTF-8)");
 if (defined $fh) {
 	
 	while(<$fh>) {
-		push(@urls,split(/\n+/,$_));
+		push(@urls,split(/\n+[^a-z]*/,$_));
 	}
 	
-	#remove UTF BOM
-	$urls[0] =~ s/^\x{FEFF}//;
-	$urls[0] =~ s/^\N{U+FEFF}//;
-	$urls[0] =~ s/^\N{ZERO WIDTH NO-BREAK SPACE}//;
+	# remove BOM
+	$urls[0] =~ s/^\xEF\xBB\xBF//;
 	$urls[0] =~ s/^\N{BOM}//;
-	
-	undef $fh;       # automatically closes the file
+	$urls[0] =~ s/^\N{U+FEFF}//;
+	$urls[0] =~ s/^\x{FEFF}//;
+	$urls[0] =~ s/^\N{ZERO WIDTH NO-BREAK SPACE}//;
 
+	#print join( "\n", @urls ); exit;
+	undef $fh;       # automatically closes the file
 }
 else { die "Could not open $infile"; }
 
@@ -148,7 +164,7 @@ foreach my $url (@urls) {
 	# don't fetch empty URLs
 	next if length $url < 1 || exists( $urls_seen{ $url } ); #avoid empty lines or duplicate URLs
 	
-	say "Start processing task #" . ++$count;
+	say "Start processing task #" . ++$count . ' ' . $url;
 	$urls_seen{ $url }++;    #avoid duplicate URLs
 	
 	my $parsed_url = new URI $url;
@@ -511,6 +527,24 @@ foreach my $url (@urls) {
                 $outfile .= '<li><a href="' . $encoded_url . '">' . $warning . '</a><br>' . $r->header('content-type') . "</li>\n";
             }
 		}
+##################################################################################################
+# Twitter
+##################################################################################################
+
+		if ( $nt  ) {
+		
+			my $tweet;
+			my $tweet_length = 255; # 280 chars - 23 URL length - 2 chars delimiter
+			$tweet .= $author . ":\n" if length $author > 0;
+			$tweet .= $title if length $title > 0;
+			$tweet = substr( $tweet, 0, $tweet_length - 1 ) if length $tweet >= $tweet_length;
+			$tweet .= "\n\n" . $url;
+		
+			eval '$nt->update( $tweet )';
+			print 'Twitter: ';
+			if ( length $@ > 0) { say $@; }
+			else { say "status updated!"; }
+		}
 		
 	}
 	
@@ -526,6 +560,16 @@ foreach my $url (@urls) {
         else {
             $outfile .= '<li><a href="' . $encoded_url . '">' . $warning . '</a></li>\n';
         }
+		
+		# Twitter
+		if ( $nt  ) {
+		
+			my $tweet = $url;
+			eval '$nt->update( $tweet )';
+			print 'Twitter: ';
+			if ( length $@ > 0) { say $@; }
+			else { say "status updated!"; }
+		}
 	}
 
 ##################################################################################################
@@ -540,14 +584,11 @@ foreach my $url (@urls) {
 	# Twitter images in different sizes
 	if ( $host eq 'pbs.twimg.com' && $path_query =~ /^(\/media\/[\w-]+)(\.|\?format=)([a-z]{3})/i ) {
 	
+		my @twitter_sizes = qw/large medium small thumb/;
+		grep { $urls{"$scheme$host$1.$3:$_"}++ } @twitter_sizes;
+		grep { $urls{"$scheme$host$1?format=$3&name=$_"}++ } @twitter_sizes;
 		$urls{"$scheme$host$1.$3"}++;
-		$urls{"$scheme$host$1.$3:large"}++;
-		$urls{"$scheme$host$1.$3:medium"}++;
-		$urls{"$scheme$host$1.$3:small"}++;
-		$urls{"$scheme$host$1?format=$3"}++;
-		$urls{"$scheme$host$1?format=$3&name=small"}++;
-		$urls{"$scheme$host$1?format=$3&name=medium"}++;
-		$urls{"$scheme$host$1?format=$3&name=large"}++;
+		
 	}
 	else { $urls{$url}++; }
 	
@@ -573,7 +614,7 @@ foreach my $url (@urls) {
 	} 
 	
 	say "****************************************************************************************\n";
-	
+
 } # main loop
 
 ##################################################################################################
@@ -684,9 +725,10 @@ sub download_wayback
 			do {
 				$msg = $ps->run_command( get_ps_download_cmd( $download , $downloadfile ) );
 				$run ++;
-			} while ($msg =~ /\(400\)|\(50\d\)|\bTime\s?out\b/i && $run < 10);
+			} while ( length $msg > 0 && ( $msg =~ /\(400\)|\(50\d\)|\bTime\s?out\b/i || $msg !~ /\(\d{3}\)/ ) && $run < 10 );
+			$msg = 'Download from Wayback Machine succeeded!' if length $msg == 0;
 			say $msg;
-			say "tried $run times";
+			say "Tried $run times";
 			say 'Download size: ' . -s $downloadfile;
 			$ps->run_command( 'del ' . $downloadfile );
 		}
