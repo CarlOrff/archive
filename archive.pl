@@ -57,6 +57,7 @@ use MIME::Base64;
 use Net::FTP;
 use Net::IDN::Encode 'domain_to_ascii';
 use Net::Twitter;
+use PDF::API2;
 use POSIX qw(strftime);
 use Scalar::Util;
 use Try::Tiny;
@@ -352,8 +353,13 @@ foreach my $url (@urls) {
 ##################################################################################################
 
 		elsif ($r->header('content-type') =~ /pdf$/i) {
-        
+		
+		my $pdf = PDF::API2->open_scalar( $content );
+		my %infohash = $pdf->info( );
+		#my $xml = $pdf->xmpMetadata( );
+		
 		utf8::decode($content);
+		
 		$content =~ s/\n//g;
 
 			# PDF metadata are stored in plain text or XML, so we can process them by common string operations.
@@ -361,8 +367,8 @@ foreach my $url (@urls) {
 			# Find title
 			print "title ";
 			# try PDF core
-			if ($content =~ /\/Title\s*?\((.*?)\)/ && length $1 > 0) {
-				$title = $1;
+			if (exists($infohash{'Title'}) && length $infohash{'Title'} > 0) {
+				$title = $infohash{'Title'};
 			}
 			# try Dublin Core as attribute
 			elsif ($content =~ /\bdc\:title\s?=\s?("(.+?)"|'(.+?)')/i && length $+ > 0) {
@@ -381,8 +387,8 @@ foreach my $url (@urls) {
 			# Find description
 			print "description ";
 			# try Dublin Core
-			if ($content =~ /\bdc\:description\s?=\s?("(.+?)"|'(.+?)')/i && length $+ > 0) {
-				$description = $+;
+			if (exists($infohash{'Subject'}) && length $infohash{'Subject'} > 0) {
+				$description = $infohash{'Subject'};
 			}
 			else {
 				$description = '';
@@ -394,8 +400,8 @@ foreach my $url (@urls) {
 			my %authors;
 			
 			# try PDF core
-			if ($content =~ /\/Author\s*\((.*?)\)/ && length $+ > 0) {
-				$authors{$1}++;
+			if (exists($infohash{'Author'}) && length $infohash{'Author'} > 0) {
+				$authors{$infohash{'Author'}}++;
 			}
 			# try XAP
 			if (scalar keys %authors == 0) {
