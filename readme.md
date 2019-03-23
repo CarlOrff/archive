@@ -16,7 +16,7 @@ Perl 5.24 (earlier versions not tested but it is likely to work with every build
 
 ## Usage
 
-Collect URLs you want to archive in file `urls.txt` separated by one or more line breaks and UTF-8-encoded and call `perl archive.pl`. The script does to things: it fetches the URLs and extracts some metadata (works with HTML and PDF). It submits them to Internet Archive by opening them in a browser or via wget or PowerShell. This is necessary because Internet Archive blocks robots globally. Then it generates a HTML file with a link list that you may post to your blog. Alternatively you can get the link list as Atom feed. Regardless of the format you can upload the file on a server via FTP.
+Collect URLs you want to archive in file `urls.txt` separated by one or more line breaks and UTF-8-encoded and call `perl archive.pl`. The script does to things: it fetches the URLs and extracts some metadata (works with HTML and PDF). It submits them to Internet Archive by opening them in a browser or via wget or PowerShell. This is necessary because Internet Archive blocks robots globally. Then it generates a HTML file with a link list that you may post to your blog. Alternatively you can get the link list as Atom feed. Additionally you can post the links on Twitter. Regardless of the format you can upload the file on a server via FTP.
 
 There are several optional switches
 
@@ -28,6 +28,8 @@ There are several optional switches
 
 `-f <filename>` name of input file if other than `urls.txt`
 
+`-k <consumer key>` Twitter consumer key
+
 `-n <username>` FTP user
 
 `-o <host>` FTP host
@@ -36,9 +38,15 @@ There are several optional switches
 
 `-s` save feed in Wayback machine (feed only)
 
+`-t <access token>` Twitter access token
+
 `-u <URL>` feed URL (feed only)
 
 `-w` use wget (PowerShell on Windows)
+
+`-x <secret consumer key>` Twitter secret consumer key
+
+`-y <secret access token>` Twitter secret access token
 
 ## Changelog
 
