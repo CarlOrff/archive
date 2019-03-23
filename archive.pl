@@ -21,7 +21,7 @@
 #               -u <URL>                  Feed URL (feed only)
 #               -w                        Use wget (PowerShell on Windows) instead of Browser::Open for Wayback URL downloads. Highly recommended!
 #               -x <secret consumer key>  Twitter secret consumer key
-#               -y <secret access token> Twitter secret access token
+#               -y <secret access token>  Twitter secret access token
 #
 #
 # LICENSE: GNU GENERAL PUBLIC LICENSE v.3
@@ -39,7 +39,7 @@ use feature 'say';
 use utf8;
 
 use Browser::Open qw( open_browser );
-use Data::Dumper;
+#use Data::Dumper;
 use DateTime;
 use DateTime::Format::W3CDTF;
 use FileHandle;
@@ -66,6 +66,7 @@ use URI::Encode;
 use WWW::RobotRules;
 use Web::Scraper;
 use XML::Atom::SimpleFeed;
+use XML::Twig;
 
 require Win32::PowerShell::IPC; # load at runtime if on Windows
 
@@ -80,7 +81,7 @@ my $author_delimiter = '/';
 # user agent string
 my $atomurl = "https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=$botname&ib_medium=atom&ib_source=outfile";
 my $htmlurl = "https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=$botname&ib_medium=html&ib_source=outfile";
-my $scripturl = 'http://bit.ly/2BoS70P';
+my $scripturl = 'https://bit.ly/2umCKlq';
 my $ua_string = "Mozilla/5.0 (compatible; +$scripturl)";
 
 my $wayback_url = 'https://web.archive.org/save/';
@@ -160,10 +161,17 @@ $ua->rules(WWW::RobotRules->new($ua_string)); # obey robots.txt
 my $count = 0;
 my %urls_seen;
 
-foreach my $url (@urls) {
+foreach my $url ( @urls ) {
+
+	# Always save large Twitter image
+	if ( $url =~ /(https?:\/\/pbs.twimg.com\/media\/[\w-]+)(\.|\?format=)([a-z]{3})/i ) {
+		$url = $1.'.'.$3.':large';}
+}
+
+foreach my $url ( @urls ) {
 
 	# don't fetch empty URLs
-	next if length $url < 1 || exists( $urls_seen{ $url } ); #avoid empty lines or duplicate URLs
+	next if length $url < 1 || exists( $urls_seen{ $url } ); # avoid empty lines or duplicate URLs
 	
 	say "Start processing task #" . ++$count . ' ' . $url;
 	$urls_seen{ $url }++;    #avoid duplicate URLs
@@ -352,23 +360,24 @@ foreach my $url (@urls) {
 # PDF
 ##################################################################################################
 
-		elsif ($r->header('content-type') =~ /pdf$/i) {
+	elsif ($r->header('content-type') =~ /pdf$/i) {
 		
-		my $pdf = PDF::API2->open_scalar( $content );
-		my %infohash = $pdf->info( );
-		#my $xml = $pdf->xmpMetadata( );
+		my ( $pdf, %infohash, $xmp );
+		eval '$pdf = PDF::API2->open_scalar( $content );%infohash = $pdf->info( );$xmp = $pdf->xmpMetadata( )';
 		
-		utf8::decode($content);
+		if ( $a || ( !%infohash && !defined $xmp ) ) { # creating PDF object has failed
 		
-		$content =~ s/\n//g;
+			utf8::decode($content);
+			
+			$content =~ s/\n//g;
 
 			# PDF metadata are stored in plain text or XML, so we can process them by common string operations.
-		
+			
 			# Find title
 			print "title ";
 			# try PDF core
-			if (exists($infohash{'Title'}) && length $infohash{'Title'} > 0) {
-				$title = $infohash{'Title'};
+			if ($content =~ /\/Title\s*?\((.*?)\)/ && length $1 > 0) {
+				$title = $1;
 			}
 			# try Dublin Core as attribute
 			elsif ($content =~ /\bdc\:title\s?=\s?("(.+?)"|'(.+?)')/i && length $+ > 0) {
@@ -387,8 +396,8 @@ foreach my $url (@urls) {
 			# Find description
 			print "description ";
 			# try Dublin Core
-			if (exists($infohash{'Subject'}) && length $infohash{'Subject'} > 0) {
-				$description = $infohash{'Subject'};
+			if ($content =~ /\bdc\:description\s?=\s?("(.+?)"|'(.+?)')/i && length $+ > 0) {
+				$description = $+;
 			}
 			else {
 				$description = '';
@@ -400,8 +409,8 @@ foreach my $url (@urls) {
 			my %authors;
 			
 			# try PDF core
-			if (exists($infohash{'Author'}) && length $infohash{'Author'} > 0) {
-				$authors{$infohash{'Author'}}++;
+			if ($content =~ /\/Author\s*\((.*?)\)/ && length $+ > 0) {
+				$authors{$1}++;
 			}
 			# try XAP
 			if (scalar keys %authors == 0) {
@@ -448,96 +457,145 @@ foreach my $url (@urls) {
 				$author = '';
 			}
 			print length $author, " characters $author\n";
-			
-			#add to HTML list
-			print "print Entry\n";
-            if ($opts{a}) {
-                $outfile->add_entry(
-                    author => encode($author),
-                    link => $encoded_url,
-                    summary => encode($description),
-                    title => encode($title . ' [PDF]'),
-                );
-            }
-            else {
-                $outfile .= '<li>PDF:&nbsp;' . (length $author > 0 ? encode($author).' ' : '') . '<a href="' . $encoded_url . '" type="application/pdf">' . HTML_format_title($title) . '</a>&nbsp;' . HTML_format_description($description) . "</li>\n";
-            }
 		}
+		else { # creating PDF object was successfull
+
+			my $twig;
+			# try to read XMP data
+			eval {
+				$twig = XML::Twig->new( 'index' => {
+					'title' => 'dc:title/rdf:Alt/rdf:li[@xml:lang="x-default"]',
+					'creator' => 'dc:creator',
+					'description' => 'dc:description/rdf:Alt/rdf:li[@xml:lang="x-default"]',
+					'language' => 'dc:language'
+				} )->parse( $xmp );
+			};
+			eval '$language = $twig->index( "language" )->[0]->text';
+			eval '$title = $twig->index( "title" )->[0]->text';
+			eval '$author = $twig->index( "creator" )->[0]->text';
+			eval '$description = $twig->index( "description" )->[0]->text';
+
+			# try PDF core
+			if ( !defined $title && exists($infohash{'Title'}) && length $infohash{'Title'} > 0 ) {
+				$title = $infohash{'Title'};
+			}
+			else {
+				$title = $url;
+			}
+			print length($title), " characters\n";
+			
+			# Find description
+			print "description ";
+			# try Dublin Core
+			if ( !defined $description && exists($infohash{'Subject'}) && length $infohash{'Subject'} > 0) {
+				$description = $infohash{'Subject'};
+			}
+			print length($description), " characters\n";
+			
+			# Find author
+			print "authors ";
+			my %authors;
+			
+			# try PDF core
+			if ( !defined $author && exists($infohash{'Author'}) && length $infohash{'Author'} > 0 ) {
+				$authors{$infohash{'Author'}}++;
+			}
+			if (scalar keys %authors > 0) {
+				$author = join($author_delimiter,keys %authors);
+			}
+			
+			print length $author, " characters $author\n";
+		}
+			
+		#add to HTML list
+		print "print Entry\n";
+        if ($opts{a}) {
+            $outfile->add_entry(
+                author => encode($author),
+                link => $encoded_url,
+                summary => encode($description),
+                title => encode($title . ' [PDF]'),
+            );
+        }
+        else {
+            $outfile .= '<li>PDF:&nbsp;' . (length $author > 0 ? encode($author).' ' : '') . '<a href="' . $encoded_url . '" type="application/pdf">' . HTML_format_title($title) . '</a>&nbsp;' . HTML_format_description($description) . "</li>\n";
+        }
+	}
 		
 ##################################################################################################
 # Images
 ##################################################################################################
-		elsif ($r->header('content-type') =~ /image/) {
-				
-			my $origimg = image_info(\$content);
-			my($width,$height) = dim($origimg);
-			my $imgfile = 'thumb.png';
-			my $thumb;
+	elsif ($r->header('content-type') =~ /image/) {
 			
-			# if image type is not known to Image::Info
-			$origimg->{'file_type'} = 'type?' if exists( $origimg->{'error'} );
-			
-			# make title
-			$title = "IMAGE (" . $origimg->{'file_type'} . "$width × $height) $encoded_url";
-			
-			my $gdObj = new GD::Image($content);
-			
-			# make thumbnail
-			new Image::Thumbnail(
-				size       => 120,  # length of longest side
-				create     => 1,
-				input      => $gdObj,
-				outputpath => $imgfile,
-				outputtype => 'png',
-				module => 'GD',
-			) if defined $gdObj;
+		my $origimg = image_info(\$content);
+		my($width,$height) = dim($origimg);
+		my $imgfile = 'thumb.png';
+		my $thumb;
+		
+		# if image type is not known to Image::Info
+		$origimg->{'file_type'} = 'type?' if exists( $origimg->{'error'} );
+		
+		# make title
+		$title = "IMAGE (" . $origimg->{'file_type'} . "$width × $height) $encoded_url";
+		
+		my $gdObj = new GD::Image($content);
+		
+		# make thumbnail
+		new Image::Thumbnail(
+			size       => 120,  # length of longest side
+			create     => 1,
+			input      => $gdObj,
+			outputpath => $imgfile,
+			outputtype => 'png',
+			module => 'GD',
+		) if defined $gdObj;
 
 	
-			# Open thumb and encode it
-			my $img = FileHandle->new($imgfile, '<:raw');
-			if (defined $img) {
-			
-				read($img, $thumb, -s $imgfile) ;
-				undef $img;
-			}
-			
-			# Get thumb size
-			my($w, $h) = html_dim( image_info(\$thumb) );
-			$description = '<img ' . $w . $h . ' src="data:image/pgn;base64,' .  encode_base64($thumb) . '"/>' if length $thumb > 0;
+		# Open thumb and encode it
+		my $img = FileHandle->new($imgfile, '<:raw');
+		if (defined $img) {
 		
-			# Delete thumbnail
-			unlink $imgfile;
-			
-			if ($opts{a}) {
-                $outfile->add_entry(
-                    link => $encoded_url,
-                    summary => $description,
-                    title => encode($title),
-                );
-            }
-			else {
-                $outfile .= '<li><a href="' . $encoded_url . '" type="' . $r->header('content-type') . '">' . encode_entities($title) . '</a>&nbsp;' . $description . "</li>\n";
-            }
+			read($img, $thumb, -s $imgfile) ;
+			undef $img;
 		}
+		
+		# Get thumb size
+		my($w, $h) = html_dim( image_info(\$thumb) );
+		$description = '<img ' . $w . $h . ' src="data:image/pgn;base64,' .  encode_base64($thumb) . '"/>' if length $thumb > 0;
+	
+		# Delete thumbnail
+		unlink $imgfile;
+		
+		if ($opts{a}) {
+            $outfile->add_entry(
+                link => $encoded_url,
+                summary => $description,
+                title => encode($title),
+            );
+        }
+		else {
+            $outfile .= '<li><a href="' . $encoded_url . '" type="' . $r->header('content-type') . '">' . encode_entities($title) . '</a>&nbsp;' . $description . "</li>\n";
+        }
+	}
 ##################################################################################################
 # Other MIME types
 ##################################################################################################
-		else {
-        
-            my $warning = 'Unknown MIME type ' . $encoded_url;
-		
-			if ($opts{a}) {
-                $outfile->add_entry(link => $encoded_url, title => $warning, summary => $r->header('content-type'));
-            }
-            else {
-                $outfile .= '<li><a href="' . $encoded_url . '">' . $warning . '</a><br>' . $r->header('content-type') . "</li>\n";
-            }
-		}
+	else {
+    
+        my $warning = 'Unknown MIME type ' . $encoded_url;
+	
+		if ($opts{a}) {
+            $outfile->add_entry(link => $encoded_url, title => $warning, summary => $r->header('content-type'));
+        }
+        else {
+            $outfile .= '<li><a href="' . $encoded_url . '">' . $warning . '</a><br>' . $r->header('content-type') . "</li>\n";
+        }
+	}
 ##################################################################################################
 # Twitter
 ##################################################################################################
 
-		if ( $nt  ) {
+	if ( $nt  ) {
 		
 			my $tweet;
 			my $tweet_length = 255; # 280 chars - 23 URL length - 2 chars delimiter
@@ -781,9 +839,9 @@ sub get_wayback_available
 		}
 	}
 
-	local $a;
+	local $@;
 	eval { $json = decode_json $json };
-	return $a if $a;
+	return $@ if $@;
 	return $json;
 }
 
