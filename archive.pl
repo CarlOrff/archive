@@ -680,7 +680,7 @@ foreach my $url ( @urls ) {
             $outfile->add_entry(link => $encoded_url, title => $warning);
         }
         else {
-            $outfile .= '<li><a href="' . $encoded_url . '">' . $warning . '</a></li>\n';
+            $outfile .= '<li><a href="' . $encoded_url . '">' . $warning . '</a></li>'."\n";
         }
 		
 		# Twitter
@@ -761,7 +761,7 @@ if ( !$opts{a} ) {
 # Post on WordPress
 if ( $wp ) {
 
-	say "Posting on WordPress";
+	say "Posting on WordPress!";
 	
 	my $api = WP::API->new(
 		username         => $opts{n},
