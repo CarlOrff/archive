@@ -146,7 +146,7 @@ elsif ( $opts{n} && $opts{p} ) { $wp = 1; }
 else { $wp = 0; }
 
 # save old feed
-push( @urls, $opts{u} ) if length $opts{u} > 0 && $opts{s} && $opts{a};
+push( @urls, $opts{u} ) if length $opts{u} > 0 && $opts{s} && $opts{a} && !$wp;
 
 my $creator = ($opts{c} && length $opts{c} > 0) ?  $opts{c} : "Ingram Braun";
 my $infile = ($opts{f} && length $opts{f} > 0) ?  $opts{f} : "urls.txt";
@@ -702,8 +702,8 @@ foreach my $url ( @urls ) {
 	say "submit to Internet Archive";
 	
 	if ( $count > 1 ) {
-		sleep( ( $opts{T} ) ? int( $opts{T} ) : 10);
 		say 'Sleep ten seconds in order not to exceed request limit.';
+		sleep( ( $opts{T} ) ? int( $opts{T} ) : 10);
 	}
 	
 	my %urls; # here we can save known URL formats in different variants, fi. images in different sizes.
