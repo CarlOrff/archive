@@ -10,18 +10,23 @@
 #    Optional arguments:
 #               -a                        Atom feed instead of HTML output
 #               -c <creator>              Name of the feed author (feed only)
-#               -d <path>                 FTP path
+#               -d <path>                 FTP path or WordPress blog id on a multisite instance.
 #               -f <filename>             Other input file name than urls.txt
+#               -h                        show commands
+#               -i <title>                Feed or HTML title
 #               -k <consumer key>         Twitter consumer key
-#               -n <username>             FTP user
+#               -n <username>             FTP or WordPress user
 #               -o <host>                 FTP host
-#               -p <password>             FTP password
+#               -p <password>             FTP or WordPress password
 #               -s                        Save feed in Wayback machine (feed only)
 #               -t <access token>         Twitter access token
-#               -u <URL>                  Feed URL (feed only)
-#               -w                        Use wget (PowerShell on Windows) instead of Browser::Open for Wayback URL downloads. Highly recommended!
+#               -T <int>                  delay per URL in seconds to respect IA's request limit
+#               -u <URL>                  Feed or WordPress XMLRPC URL
+#               -v                        Version info
+#               -w                        Use wget (PowerShell on Windows) instead of Browser::Open. Highly recommended!
 #               -x <secret consumer key>  Twitter secret consumer key
 #               -y <secret access token>  Twitter secret access token
+#               -z <time zone>            Time zone (WordPress only)
 #
 #
 # LICENSE: GNU GENERAL PUBLIC LICENSE v.3
@@ -65,30 +70,80 @@ use URI;
 use URI::Encode;
 use WWW::RobotRules;
 use Web::Scraper;
+use WP::API;
 use XML::Atom::SimpleFeed;
 use XML::Twig;
 
 require Win32::PowerShell::IPC; # load at runtime if on Windows
 
+if ( scalar @ARGV == 0 ) { 
+	say 'Call "archive pl -h" to display options!';
+    exit; } # 'die' would print the line number
+
 ##################################################################################################
 # global variables
 ##################################################################################################
 
-my $botname = 'archive.pl-1.7';
+
+my $VERSION = "1.8";
+my $botname = "archive.pl-$VERSION";
 my @urls;
 my $author_delimiter = '/';
 
 # user agent string
-my $atomurl = "https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=$botname&ib_medium=atom&ib_source=outfile";
-my $htmlurl = "https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=$botname&ib_medium=html&ib_source=outfile";
-my $scripturl = 'https://bit.ly/2umCKlq';
+my $atomurl = "https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=$botname&ib_medium=atom&ib_source=outfile";
+my $htmlurl = "https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=$botname&ib_medium=html&ib_source=outfile";
+my $scripturl = 'http://bit.ly/2QwP8uT';
 my $ua_string = "Mozilla/5.0 (compatible; +$scripturl)";
 
 my $wayback_url = 'https://web.archive.org/save/';
 
+my $download_method = 0; # 0 (GET) or 1 (POST)
+
 # fetch options
 my %opts;
-getopts('ac:d:f:k:n:o:p:st:u:wx:y:', \%opts);
+getopts('ac:d:f:hi:k:n:o:p:st:T:u:vwx:y:z:', \%opts);
+
+my @commands = [
+	'-a                        Atom feed instead of HTML output',
+	'-c <creator>              Name of the feed author (feed only)',
+	'-d <path>                 FTP path',
+	'-f <filename>             Other input file name than urls.txt',
+	'-h                        show commands',
+	'-i <title>                Feed or HTML title',
+	'-k <consumer key>         Twitter consumer key',
+	'-n <username>             FTP or WordPress user',
+	'-o <host>                 FTP host',
+	'-p <password>             FTP or WordPress password',
+	'-s                        Save feed in Wayback machine',
+	'-t <access token>         Twitter access token',
+	'-T <seconds>              delay per URL in seconds to respect IA\'s request limit',
+	'-u <URL>                  Feed or WordPress (xmlrpc.php) URL',
+	'-v                        Version info',
+	'-w                        Use wget (PowerShell on Windows) instead of Browser::Open for Wayback URL downloads. Highly recommended!',
+	'-x <secret consumer key>  Twitter secret consumer key',
+	'-y <secret access token>  Twitter secret access token',
+	'-z <time zone>            Time zone (WordPress only)',
+];
+
+# Display options and version
+if ($opts{h}) {
+	say 'AVAILABLE OPTIONS';
+	say "";
+	grep { say "\t$_"; } sort @commands;
+	say "";
+	exit;
+}
+elsif ($opts{v}) {
+	say "This is archive.pl $VERSION by Ingram Braun";
+	exit;
+}
+
+# if credentials available the -o switch indicates FTP, WP otherwise,
+my $wp;
+if ( $opts{o} && length $opts{f} > 0 ) { $wp = 0; }
+elsif ( $opts{n} && $opts{p} ) { $wp = 1; }
+else { $wp = 0; }
 
 # save old feed
 push( @urls, $opts{u} ) if length $opts{u} > 0 && $opts{s} && $opts{a};
@@ -97,14 +152,15 @@ my $creator = ($opts{c} && length $opts{c} > 0) ?  $opts{c} : "Ingram Braun";
 my $infile = ($opts{f} && length $opts{f} > 0) ?  $opts{f} : "urls.txt";
 my %atomurl = ($opts{u} && length $opts{u} > 0) ? ( 'rel' => 'self', 'href' => encode_entities($opts{u}), ) : ( 'href' => $atomurl, ) if $opts{a};
 
+my $out_title = ($opts{i}) ? $opts{i} : "$botname result";
 my $outfile = ($opts{a}) ? XML::Atom::SimpleFeed->new(
      id => $atomurl{href},
-     title   => 'Archived URLs',
+     title   =>  $out_title,
      link    => \%atomurl,
      updated => DateTime::Format::W3CDTF->new()->format_datetime(DateTime->now), 
      author  => $creator, # needed since it is not sure that all entries have an author
      generator  => $botname,
- ) : "<!doctype html>\n<head>\n<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>\n<meta name='generator' content='$botname'>\n<link rel='help' href='$htmlurl'>\n<title>$botname result</title>\n</head>\n<body>\n\n<ul>\n";
+ ) : ( $wp ) ? '<ul>' : "<!doctype html>\n<head>\n<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>\n<meta name='generator' content='$botname'>\n<link rel='help' href='$htmlurl'>\n<title>$out_title</title>\n</head>\n<body>\n\n<ul>\n";
 
  # initiate Twitter object
  my $nt  = ( $opts{k} && (length $opts{k} > 0) && $opts{t} && (length $opts{t} > 0) && $opts{x} && (length $opts{x} > 0) && $opts{y} && (length $opts{y} > 0) ) ? Net::Twitter->new(
@@ -223,6 +279,8 @@ foreach my $url ( @urls ) {
 ##################################################################################################
 
 		if ($r->header('content-type') =~ /(ht|x)ml/i) {
+		
+			$download_method = 1;
 		
 			# Properties as lower case since Web::Scraper's contains()-method is case sensitive.
 			utf8::decode($content);
@@ -618,7 +676,7 @@ foreach my $url ( @urls ) {
 		print "failed!\n";
         my $warning = 'WARNING: cannot fetch ' . $encoded_url;
         
-        if ($opts{a}) {
+        if ( $opts{a} ) {
             $outfile->add_entry(link => $encoded_url, title => $warning);
         }
         else {
@@ -641,7 +699,12 @@ foreach my $url ( @urls ) {
 # blocked by robots.txt, therefore we do it in a browser
 ##################################################################################################
 
-	print "submit to Internet Archive\n";
+	say "submit to Internet Archive";
+	
+	if ( $count > 1 ) {
+		sleep( ( $opts{T} ) ? int( $opts{T} ) : 10);
+		say 'Sleep ten seconds in order not to exceed request limit.';
+	}
 	
 	my %urls; # here we can save known URL formats in different variants, fi. images in different sizes.
 
@@ -678,6 +741,8 @@ foreach my $url ( @urls ) {
 	} 
 	
 	say "****************************************************************************************\n";
+		
+	$download_method = 0;
 
 } # main loop
 
@@ -686,7 +751,33 @@ foreach my $url ( @urls ) {
 ##################################################################################################
 
 # close list
-$outfile .= "</ul>\n<hr><p>Generated with <a href='$htmlurl'>$botname</a></p></body>" if !$opts{a};
+if ( !$opts{a} ) {
+
+	$outfile .= "</ul>";
+
+	$outfile .= "\n<hr><p>Generated with <a href='$htmlurl'>$botname</a></p></body>" if !$wp;
+}
+
+# Post on WordPress
+if ( $wp ) {
+
+	say "Posting on WordPress";
+	
+	my $api = WP::API->new(
+		username         => $opts{n},
+		password         => $opts{p},
+		proxy            => $opts{u},
+		server_time_zone => ($opts{z}) ? $opts{z} : 'UTC',
+		#blog_id => ($opts{d}) ? $opts{d} : 1,
+	);
+	 
+	my $post = $api->post()->create(
+		post_title    => $out_title,
+		#post_date_gmt => $dt,
+		post_content  => $outfile,
+		#post_author   => 42,
+	);
+}
 
 # create file name
 my $out = ($opts{a}) ? 'archive.atom' : 'ia' . time() . '.html';
@@ -774,7 +865,7 @@ sub check_scraped {
 }
 
 sub download_wayback
-{	
+{		
 	my $download = $wayback_url . $_[0];
 	
 	if ( $opts{w} )	{
@@ -785,16 +876,18 @@ sub download_wayback
 			my $ps = Win32::PowerShell::IPC->new( );
 			my $msg;
 			my $run = 0;
+			my $method = 0;
+			
 			# repeat downloads as long as there are no HTTP 50x errors.
 			do {
-				$msg = $ps->run_command( get_ps_download_cmd( $download , $downloadfile ) );
+				$msg = $ps->run_command( get_ps_download_cmd( $download , $downloadfile, $download_method ) );
 				$run ++;
-			} while ( length $msg > 0 && ( $msg =~ /\(400\)|\(50\d\)|\bTime\s?out\b/i || $msg !~ /\(\d{3}\)/ ) && $run < 10 );
+			} while ( length $msg > 0 && ( $msg =~ /\(400\)|\(50\d\)|\bTime\s?out\b/i || $msg !~ /\(\d{3}\)/ || -s $downloadfile == 0 ) && $run < 10 );
 			$msg = 'Download from Wayback Machine succeeded!' if length $msg == 0;
 			say $msg;
 			say "Tried $run times";
 			say 'Download size: ' . -s $downloadfile;
-			$ps->run_command( 'del ' . $downloadfile );
+			#$ps->run_command( 'del ' . $downloadfile );
 		}
 		else {
 		
@@ -826,7 +919,7 @@ sub get_wayback_available
 		
 			my $ps = Win32::PowerShell::IPC->new();
 			my $downloadfile = 'ia_available.json';
-			$ps->run_command( get_ps_download_cmd( $download , $downloadfile ) );
+			$ps->run_command( get_ps_download_cmd( $download , $downloadfile, 0 ) );
 			my $dwld = FileHandle->new($downloadfile, "r");
 			if (defined $dwld) {
 				
@@ -852,8 +945,13 @@ sub get_ps_download_cmd
 {
 	my $download_url = shift;
 	my $download_file = shift;
+	my $method = shift;
 	
 	$download_url =~ s/&/%26/g;
+	my $post_url = $download_url;
+	$post_url =~ s/.+?\/http/http/;
+	
+	return "Invoke-WebRequest -Uri '$download_url' -Method POST -Body \@{url='$post_url';capture_outlinks='on';capture_all='on';capture_screenshot='on'} -Outfile $download_file" if $method;
 	
 	return "(new-object System.Net.WebClient).Downloadfile(\"$download_url\", \"$download_file\");";
 }
