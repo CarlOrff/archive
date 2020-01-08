@@ -2,7 +2,7 @@
 
 *A script for archiving URL sets (HTML, PDF) in the [Internet Archive](https://archive.org).*
 
-Copyright (C) 2015-2018 Ingram Braun [https://ingram-braun.net/](https://ingram-braun.net/#ib_campaign=archive-pl-1.7&ib_medium=repository&ib_source=readme&ib_content=copyright)
+Copyright (C) 2015-2020 Ingram Braun [https://ingram-braun.net/](https://ingram-braun.net/#ib_campaign=archive-pl-1.7&ib_medium=repository&ib_source=readme&ib_content=copyright)
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
@@ -110,7 +110,7 @@ Not published.
 
 ## Project Page
 
-[https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/](https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=archive-pl-1.7&ib_medium=repository&ib_source=readme&ib_content=projectpage)
+[https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/](https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=archive-pl-1.8&ib_medium=repository&ib_source=readme&ib_content=projectpage)
 
 ## Windows Binaries
 
