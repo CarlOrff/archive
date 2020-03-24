@@ -11,6 +11,7 @@
 #               -a                        Atom feed instead of HTML output
 #               -c <creator>              Name of the feed author (feed only)
 #               -d <path>                 FTP path or WordPress blog id on a multisite instance.
+#               -D                        Debug mode - don't save to Internet Archive
 #               -f <filename>             Other input file name than urls.txt
 #               -h                        show commands
 #               -i <title>                Feed or HTML title
@@ -23,7 +24,7 @@
 #               -T <int>                  delay per URL in seconds to respect IA's request limit
 #               -u <URL>                  Feed or WordPress XMLRPC URL
 #               -v                        Version info
-#               -w                        Use wget (PowerShell on Windows) instead of Browser::Open. Highly recommended!
+#               -w                        *deprecated* 
 #               -x <secret consumer key>  Twitter secret consumer key
 #               -y <secret access token>  Twitter secret access token
 #               -z <time zone>            Time zone (WordPress only)
@@ -68,13 +69,12 @@ use Scalar::Util;
 use Try::Tiny;
 use URI;
 use URI::Encode;
-use WWW::RobotRules;
 use Web::Scraper;
 use WP::API;
+use WWW::Mechanize;
+use WWW::RobotRules;
 use XML::Atom::SimpleFeed;
 use XML::Twig;
-
-require Win32::PowerShell::IPC; # load at runtime if on Windows
 
 if ( scalar @ARGV == 0 ) { 
 	say 'Call "archive pl -h" to display options!';
@@ -102,12 +102,13 @@ my $download_method = 0; # 0 (GET) or 1 (POST)
 
 # fetch options
 my %opts;
-getopts('ac:d:f:hi:k:n:o:p:st:T:u:vwx:y:z:', \%opts);
+getopts('ac:d:Df:hi:k:n:o:p:st:T:u:vwx:y:z:', \%opts);
 
 my @commands = [
 	'-a                        Atom feed instead of HTML output',
 	'-c <creator>              Name of the feed author (feed only)',
 	'-d <path>                 FTP path',
+	'-D                        Debug mode - don\'t save to Internaet Archive',
 	'-f <filename>             Other input file name than urls.txt',
 	'-h                        show commands',
 	'-i <title>                Feed or HTML title',
@@ -120,7 +121,7 @@ my @commands = [
 	'-T <seconds>              delay per URL in seconds to respect IA\'s request limit',
 	'-u <URL>                  Feed or WordPress (xmlrpc.php) URL',
 	'-v                        Version info',
-	'-w                        Use wget (PowerShell on Windows) instead of Browser::Open for Wayback URL downloads. Highly recommended!',
+	'-w                        *deprecated*',
 	'-x <secret consumer key>  Twitter secret consumer key',
 	'-y <secret access token>  Twitter secret access token',
 	'-z <time zone>            Time zone (WordPress only)',
@@ -322,7 +323,7 @@ foreach my $url ( @urls ) {
 			#print Dumper($scraper);
 			
 			# we assume that social media titles are better than HTML titles
-			print "title ";
+			print "TITLE ";
 			if (check_scraped($scraper, 'open_graph_title')) {
 				$title = $scraper->{'open_graph_title'};
 			}
@@ -351,15 +352,15 @@ foreach my $url ( @urls ) {
 			else {
 				$title = $url;
 			}
-			print length($title), " characters\n";
+			print length($title), " characters: \"$title\"\n";
 			
 			# we assume that the longest description is the best
-			print "description ";
+			print "DESCRIPTION ";
 			$description = reduce { length $a > length $b ? $a : $b } map {$_ if defined $_} ($scraper->{'open_graph_description'},$scraper->{'dublin_core_description'},$scraper->{'dublin_core_description2'},$scraper->{'twitter_description'},$scraper->{'dublin_core_abstract'},$scraper->{'dublin_core_abstract2'},$scraper->{'meta_description'},$scraper->{'meta_description2'});
-			print length($description), " characters\n";
+			print length($description), " characters: \"$description\"\n";
 			
 			# join authors
-			print "authors ";
+			print "AUTHOR(S) ";
 			if (check_scraped($scraper, 'dublin_core_author')) {
 				$author = join($author_delimiter,@{$scraper->{'dublin_core_author'}});
 			}
@@ -375,10 +376,10 @@ foreach my $url ( @urls ) {
 			else {
 				$author = '';
 			}
-			print length($author), " characters\n";
+			print length($author), " characters: \"$author\"\n";
 			
 			# record language
-			print "language ";
+			print "LANGUAGE ";
 			if (check_scraped($scraper, 'html_lang')) {
 				$language = $scraper->{'html_lang'};
 			}
@@ -397,7 +398,7 @@ foreach my $url ( @urls ) {
 			else {
 				$language = '';
 			}
-			print length($language), " characters\n";
+			print length($language), " characters: \"$language\"\n";
 			
 			#add to list
             if ($opts{a}) {
@@ -534,24 +535,26 @@ foreach my $url ( @urls ) {
 			eval '$description = $twig->index( "description" )->[0]->text';
 
 			# try PDF core
+			print "TITLE ";
 			if ( !defined $title && exists($infohash{'Title'}) && length $infohash{'Title'} > 0 ) {
 				$title = $infohash{'Title'};
 			}
 			else {
 				$title = $url;
 			}
-			print length($title), " characters\n";
+			print length($title), " characters \"$title\"\n";
 			
 			# Find description
-			print "description ";
+			print "DESCRIPTION ";
 			# try Dublin Core
 			if ( !defined $description && exists($infohash{'Subject'}) && length $infohash{'Subject'} > 0) {
 				$description = $infohash{'Subject'};
 			}
-			print length($description), " characters\n";
+			else { $description = ''; }
+			print length($description), " characters \"$description\"\n";
 			
 			# Find author
-			print "authors ";
+			print "AUTHOR(S) ";
 			my %authors;
 			
 			# try PDF core
@@ -562,7 +565,7 @@ foreach my $url ( @urls ) {
 				$author = join($author_delimiter,keys %authors);
 			}
 			
-			print length $author, " characters $author\n";
+			print length $author, " characters \"$author\"\n";
 		}
 			
 		#add to HTML list
@@ -576,7 +579,7 @@ foreach my $url ( @urls ) {
             );
         }
         else {
-            $outfile .= '<li>PDF:&nbsp;' . (length $author > 0 ? encode($author).' ' : '') . '<a href="' . $encoded_url . '" type="application/pdf">' . HTML_format_title($title) . '</a>&nbsp;' . HTML_format_description($description) . "</li>\n";
+            $outfile .= '<li>PDF: ' . (length $author > 0 ? encode($author).' ' : '') . '<a href="' . $encoded_url . '" type="application/pdf">' . HTML_format_title($title) . '</a> ' . HTML_format_description($description) . "</li>\n";
         }
 	}
 		
@@ -632,7 +635,7 @@ foreach my $url ( @urls ) {
             );
         }
 		else {
-            $outfile .= '<li><a href="' . $encoded_url . '" type="' . $r->header('content-type') . '">' . encode_entities($title) . '</a>&nbsp;' . $description . "</li>\n";
+            $outfile .= '<li><a href="' . $encoded_url . '" type="' . $r->header('content-type') . '">' . encode_entities($title) . '</a> ' . $description . "</li>\n";
         }
 	}
 ##################################################################################################
@@ -699,51 +702,57 @@ foreach my $url ( @urls ) {
 # blocked by robots.txt, therefore we do it in a browser
 ##################################################################################################
 
-	say "submit to Internet Archive";
-	
-	if ( $count > 1 ) {
-		say 'Sleep ten seconds in order not to exceed request limit.';
-		sleep( ( $opts{T} ) ? int( $opts{T} ) : 10);
+	if ( $opts{D} ) {
+		
+		say 'DEBUG mode active: not submited to Internet Archive!';
 	}
-	
-	my %urls; # here we can save known URL formats in different variants, fi. images in different sizes.
+	else {
+		say "submit to Internet Archive";
+		
+		if ( $count > 1 ) {
+			my $sleep = ( $opts{T} ) ? int( $opts{T} ) : 10;
+			say "Sleep $sleep seconds in order not to exceed request limit.";
+			sleep( $sleep );
+		}
+		
+		my %urls; # here we can save known URL formats in different variants, fi. images in different sizes.
 
-	# Twitter images in different sizes
-	if ( $host eq 'pbs.twimg.com' && $path_query =~ /^(\/media\/[\w-]+)(\.|\?format=)([a-z]{3})/i ) {
-	
-		my @twitter_sizes = qw/large medium small thumb/;
-		grep { $urls{"$scheme$host$1.$3:$_"}++ } @twitter_sizes;
-		grep { $urls{"$scheme$host$1?format=$3&name=$_"}++ } @twitter_sizes;
-		$urls{"$scheme$host$1.$3"}++;
+		# Twitter images in different sizes
+		if ( $host eq 'pbs.twimg.com' && $path_query =~ /^(\/media\/[\w-]+)(\.|\?format=)([a-z]{3})/i ) {
 		
-	}
-	else { $urls{$url}++; }
-	
-	foreach ( keys %urls ) { 
-	
-		my $available = get_wayback_available( $_ );
+			my @twitter_sizes = qw/large medium small thumb/;
+			grep { $urls{"$scheme$host$1.$3:$_"}++ } @twitter_sizes;
+			grep { $urls{"$scheme$host$1?format=$3&name=$_"}++ } @twitter_sizes;
+			$urls{"$scheme$host$1.$3"}++;
+			
+		}
+		else { $urls{$url}++; }
 		
-		say "Available in Wayback Machine:";
-		if ( 'HASH' eq Scalar::Util::reftype($available) ) {
-			say "\tURL: " . $$available{url} if exists( $$available{url} );
-			say "\tavailable: " . $$available{archived_snapshots}{closest}{available} if exists( $$available{archived_snapshots}{closest}{available} );
-			say "\tstatus: " . $$available{archived_snapshots}{closest}{status} if exists( $$available{archived_snapshots}{closest}{status} );
-			if (exists( $$available{archived_snapshots}{closest}{timestamp} ) ) {
-				$$available{archived_snapshots}{closest}{timestamp} =~ s/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/$3.$2.$1 $4:$5:$6/;
-				say "\tclosest: " . $$available{archived_snapshots}{closest}{timestamp};
+		foreach ( keys %urls ) { 
+		
+			my $available = get_wayback_available( $_ );
+			
+			say "Available in Wayback Machine:";
+			if ( 'HASH' eq Scalar::Util::reftype($available) ) {
+				say "\tURL: " . $$available{url} if exists( $$available{url} );
+				say "\tavailable: " . $$available{archived_snapshots}{closest}{available} if exists( $$available{archived_snapshots}{closest}{available} );
+				say "\tstatus: " . $$available{archived_snapshots}{closest}{status} if exists( $$available{archived_snapshots}{closest}{status} );
+				if (exists( $$available{archived_snapshots}{closest}{timestamp} ) ) {
+					$$available{archived_snapshots}{closest}{timestamp} =~ s/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/$3.$2.$1 $4:$5:$6/;
+					say "\tclosest: " . $$available{archived_snapshots}{closest}{timestamp};
+				}
 			}
-		}
-		else {
-			say "\tCan't check: $available ";
-		}
-	
-		download_wayback( $_ );
-	} 
+			else {
+				say "\tCan't check: $available ";
+			}
+		
+			download_wayback( $_ );
+		} 
+			
+		$download_method = 0;
+	}
 	
 	say "****************************************************************************************\n";
-		
-	$download_method = 0;
-
 } # main loop
 
 ##################################################################################################
@@ -753,9 +762,9 @@ foreach my $url ( @urls ) {
 # close list
 if ( !$opts{a} ) {
 
-	$outfile .= "</ul>";
+	$outfile .= "</ul>\n<hr><p>Generated with <a href='$htmlurl'>$botname</a></p>";
 
-	$outfile .= "\n<hr><p>Generated with <a href='$htmlurl'>$botname</a></p></body>" if !$wp;
+	$outfile .= "</body>" if !$wp;
 }
 
 # Post on WordPress
@@ -768,13 +777,14 @@ if ( $wp ) {
 		password         => $opts{p},
 		proxy            => $opts{u},
 		server_time_zone => ($opts{z}) ? $opts{z} : 'UTC',
-		#blog_id => ($opts{d}) ? $opts{d} : 1,
+		blog_id => ($opts{d}) ? $opts{d} : 1,
 	);
 	 
+	# fix atabse saving error with 8bit ASCII 
 	my $post = $api->post()->create(
-		post_title    => $out_title,
+		post_title    => encode_entities($out_title, '^\n\x20-\x25\x27-\x7e'),
 		#post_date_gmt => $dt,
-		post_content  => $outfile,
+		post_content  => encode_entities($outfile, '^\n\x20-\x25\x27-\x7e'),
 		#post_author   => 42,
 	);
 }
@@ -868,39 +878,26 @@ sub download_wayback
 {		
 	my $download = $wayback_url . $_[0];
 	
-	if ( $opts{w} )	{
-		
-		if ($^O eq 'MSWin32') {
-		
-			my $downloadfile = 'ia_download.dat';
-			my $ps = Win32::PowerShell::IPC->new( );
-			my $msg;
-			my $run = 0;
-			my $method = 0;
-			
-			# repeat downloads as long as there are no HTTP 50x errors.
-			do {
-				$msg = $ps->run_command( get_ps_download_cmd( $download , $downloadfile, $download_method ) );
-				$run ++;
-			} while ( length $msg > 0 && ( $msg =~ /\(400\)|\(50\d\)|\bTime\s?out\b/i || $msg !~ /\(\d{3}\)/ || -s $downloadfile == 0 ) && $run < 10 );
-			$msg = 'Download from Wayback Machine succeeded!' if length $msg == 0;
-			say $msg;
-			say "Tried $run times";
-			say 'Download size: ' . -s $downloadfile;
-			#$ps->run_command( 'del ' . $downloadfile );
-		}
-		else {
-		
-			# --tries and --user-agent do not work with older versions.
-			exec( 'wget ' . $download )};
-	}
-	else {
+	# Percent encode URL
+	my $percent_encoded_url = URI::Encode->new({double_encode => 1})->encode( $_[0] );
 	
-		open_browser($download);
-	}
+	my $mech = WWW::Mechanize->new( agent => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36' );
+	
+	my $looged_in = '&capture_outlinks=on&capture_screenshot=on';
+	
+	my $tries = 3;
+	my $run = 0;
+	do {
+	
+		$mech->post( $download, content => "capture_all=on&url=$percent_encoded_url" );
+		$run++;
+	} while ( ( $mech->status() < 200 || $mech->status() > 299 ) && $run <= $tries );
+	
+	say 'HTTP STATUS: ' . $mech->status();
+	say 'Tries: ' . $run;
+	#say 'CONTENT: ' . $mech->text();
 }
 
-# works only with PowerShell at the time being
 # downloads the available API of URL in arg1
 # returns hashref to decoded JSON or error message
 sub get_wayback_available
@@ -913,45 +910,12 @@ sub get_wayback_available
 	my $download = 'https://archive.org/wayback/available?url=' . $av_url->host . $av_path_query;
 	my $json = '{}';
 	
-	if ( $opts{w} )	{
-		
-		if ($^O eq 'MSWin32') {			
-		
-			my $ps = Win32::PowerShell::IPC->new();
-			my $downloadfile = 'ia_available.json';
-			$ps->run_command( get_ps_download_cmd( $download , $downloadfile, 0 ) );
-			my $dwld = FileHandle->new($downloadfile, "r");
-			if (defined $dwld) {
-				
-				read( $dwld, $json,  -s $downloadfile );
-				undef $dwld;       # automatically closes the file
-			}
-			else {say "$dwld not opened: $!";}
-
-			$ps->run_command( 'del ' . $downloadfile )
-		}
-	}
-
+	my $mech = WWW::Mechanize->new( agent => 'wonderbot 1.01' );
+	$mech->get( $download );
+	my $json = $mech->content( raw => 1 );
+	
 	local $@;
 	eval { $json = decode_json $json };
 	return $@ if $@;
 	return $json;
-}
-
-# Builds a download command for MS PowerShell.
-#arg 1 = download URL
-#arg 2 = download file
-sub get_ps_download_cmd
-{
-	my $download_url = shift;
-	my $download_file = shift;
-	my $method = shift;
-	
-	$download_url =~ s/&/%26/g;
-	my $post_url = $download_url;
-	$post_url =~ s/.+?\/http/http/;
-	
-	return "Invoke-WebRequest -Uri '$download_url' -Method POST -Body \@{url='$post_url';capture_outlinks='on';capture_all='on';capture_screenshot='on'} -Outfile $download_file" if $method;
-	
-	return "(new-object System.Net.WebClient).Downloadfile(\"$download_url\", \"$download_file\");";
 }

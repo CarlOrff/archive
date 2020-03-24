@@ -2,7 +2,7 @@
 
 *A script for archiving URL sets (HTML, PDF) in the [Internet Archive](https://archive.org).*
 
-Copyright (C) 2015-2020 Ingram Braun [https://ingram-braun.net/](https://ingram-braun.net/#ib_campaign=archive-pl-1.7&ib_medium=repository&ib_source=readme&ib_content=copyright)
+© 2015-2020 Ingram Braun [https://ingram-braun.net/](https://ingram-braun.net/#ib_campaign=archive-pl-1.7&ib_medium=repository&ib_source=readme&ib_content=copyright)
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
