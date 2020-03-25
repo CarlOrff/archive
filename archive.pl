@@ -88,7 +88,7 @@ if ( scalar @ARGV == 0 ) {
 ##################################################################################################
 
 
-my $VERSION = "1.8";
+my $VERSION = "2.0";
 my $botname = "archive.pl-$VERSION";
 my @urls;
 my $author_delimiter = '/';
@@ -96,15 +96,16 @@ my $author_delimiter = '/';
 # user agent string
 my $atomurl = "https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=$botname&ib_medium=atom&ib_source=outfile";
 my $htmlurl = "https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=$botname&ib_medium=html&ib_source=outfile";
-my $scripturl = 'http://bit.ly/2QwP8uT';
-my $ua_string = "Mozilla/5.0 (compatible; +$scripturl)";
+my $scripturl = 'https://bit.ly/2JbE2qH';
+my $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36';
+my $ua_string = "$ua +$scripturl";
 
 my $wayback_url = 'https://web.archive.org/save/';
 
 my $download_method = 0; # 0 (GET) or 1 (POST)
 
 # init WWW::Mechanize
-my $mech = WWW::Mechanize->new( agent => "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36", autocheck => 1 );
+my $mech = WWW::Mechanize->new( agent => $ua, autocheck => 1 );
 
 # init LinkExtor
 my %raw_urls;
