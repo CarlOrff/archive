@@ -34,6 +34,8 @@ There are several optional switches
 
 `-k <consumer key>` Twitter consumer key
 
+`-l` save linked documents
+
 `-n <username>` FTP or WordPress user
 
 `-o <host>` FTP host
