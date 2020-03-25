@@ -16,6 +16,7 @@
 #               -h                        show commands
 #               -i <title>                Feed or HTML title
 #               -k <consumer key>         Twitter consumer key
+#               -l                        save linked documents
 #               -n <username>             FTP or WordPress user
 #               -o <host>                 FTP host
 #               -p <password>             FTP or WordPress password
@@ -53,6 +54,7 @@ use FindBin ();
 use GD;
 use Getopt::Std;
 use HTML::Entities;
+use HTML::LinkExtor;
 use HTML::Strip;
 use Image::Info qw( dim image_info html_dim );
 use Image::Thumbnail;
@@ -69,6 +71,7 @@ use Scalar::Util;
 use Try::Tiny;
 use URI;
 use URI::Encode;
+use URI::URL;
 use Web::Scraper;
 use WP::API;
 use WWW::Mechanize;
@@ -100,9 +103,19 @@ my $wayback_url = 'https://web.archive.org/save/';
 
 my $download_method = 0; # 0 (GET) or 1 (POST)
 
+# init WWW::Mechanize
+my $mech = WWW::Mechanize->new( agent => "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36", autocheck => 1 );
+
+# init LinkExtor
+my %raw_urls;
+my $p = HTML::LinkExtor->new(\&get_links);
+
+# linked URLs that should get saved, too
+my %linked;
+
 # fetch options
 my %opts;
-getopts('ac:d:Df:hi:k:n:o:p:st:T:u:vwx:y:z:', \%opts);
+getopts('ac:d:Df:hi:k:ln:o:p:st:T:u:vwx:y:z:', \%opts);
 
 my @commands = [
 	'-a                        Atom feed instead of HTML output',
@@ -113,6 +126,7 @@ my @commands = [
 	'-h                        show commands',
 	'-i <title>                Feed or HTML title',
 	'-k <consumer key>         Twitter consumer key',
+	'-l                        save linked documents',
 	'-n <username>             FTP or WordPress user',
 	'-o <host>                 FTP host',
 	'-p <password>             FTP or WordPress password',
@@ -282,6 +296,25 @@ foreach my $url ( @urls ) {
 		if ($r->header('content-type') =~ /(ht|x)ml/i) {
 		
 			$download_method = 1;
+			
+			if ($opts{l}) {
+			
+				# link base
+				my $base = $r->base;
+				
+				# extract links
+				$p->parse($content);
+				
+				# expand raw urls
+				my @links = map {$_ = url($_, $base)->abs;} keys %raw_urls;
+				# empty buffer
+				%raw_urls = ();
+				
+				# remove hashes
+				grep { $_ =~ s/\#.*// } @links;
+				
+				grep { $linked{$_}++ } @links;
+			}
 		
 			# Properties as lower case since Web::Scraper's contains()-method is case sensitive.
 			utf8::decode($content);
@@ -596,9 +629,6 @@ foreach my $url ( @urls ) {
 		# if image type is not known to Image::Info
 		$origimg->{'file_type'} = 'type?' if exists( $origimg->{'error'} );
 		
-		# make title
-		$title = "IMAGE (" . $origimg->{'file_type'} . "$width × $height) $encoded_url";
-		
 		my $gdObj = new GD::Image($content);
 		
 		# make thumbnail
@@ -635,7 +665,7 @@ foreach my $url ( @urls ) {
             );
         }
 		else {
-            $outfile .= '<li><a href="' . $encoded_url . '" type="' . $r->header('content-type') . '">' . encode_entities($title) . '</a> ' . $description . "</li>\n";
+            $outfile .= '<li>IMAGE (' . $origimg->{'file_type'} .$width .' × ' . $height .') <a href="' . $encoded_url . '" type="' . $r->header('content-type') . '">' . encode_entities($encoded_url) . '</a> ' . $description . "</li>\n";
         }
 	}
 ##################################################################################################
@@ -709,12 +739,6 @@ foreach my $url ( @urls ) {
 	else {
 		say "submit to Internet Archive";
 		
-		if ( $count > 1 ) {
-			my $sleep = ( $opts{T} ) ? int( $opts{T} ) : 10;
-			say "Sleep $sleep seconds in order not to exceed request limit.";
-			sleep( $sleep );
-		}
-		
 		my %urls; # here we can save known URL formats in different variants, fi. images in different sizes.
 
 		# Twitter images in different sizes
@@ -756,6 +780,26 @@ foreach my $url ( @urls ) {
 } # main loop
 
 ##################################################################################################
+# save linked documents
+##################################################################################################	
+if ($opts{l}) {
+
+	say "\nsaving linked documents:";
+	
+	my $lrun = 0;
+
+	foreach my $linked (keys %linked) {
+		
+		next if ( $linked =~ /^(ftps?|javascript|mailto):/);
+		next if exists( $urls_seen{ $linked } );
+		
+		say '#' . ++$lrun . ' ' . $linked;
+		
+		download_wayback( $linked ) if !$opts{D};
+	}
+}
+
+##################################################################################################
 # print file
 ##################################################################################################
 
@@ -782,7 +826,7 @@ if ( $wp ) {
 	 
 	# fix atabse saving error with 8bit ASCII 
 	my $post = $api->post()->create(
-		post_title    => encode_entities($out_title, '^\n\x20-\x25\x27-\x7e'),
+		post_title    => $out_title, '^\n\x20-\x25\x27-\x7e',
 		#post_date_gmt => $dt,
 		post_content  => encode_entities($outfile, '^\n\x20-\x25\x27-\x7e'),
 		#post_author   => 42,
@@ -867,7 +911,7 @@ sub HTML_format_description {
 	return "<br />\n" . encode_entities($str);
 }
 
-#checks if a scraper result is true
+# checks if a scraper result is true
 sub check_scraped {
 	my $scraped = shift;
 	my $tag = shift;
@@ -876,27 +920,42 @@ sub check_scraped {
 
 sub download_wayback
 {		
-	my $download = $wayback_url . $_[0];
-	
-	# Percent encode URL
-	my $percent_encoded_url = URI::Encode->new({double_encode => 1})->encode( $_[0] );
-	
-	my $mech = WWW::Mechanize->new( agent => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36' );
-	
-	my $looged_in = '&capture_outlinks=on&capture_screenshot=on';
+	$mech->get("https://web.archive.org/save/");
 	
 	my $tries = 3;
 	my $run = 0;
 	do {
 	
-		$mech->post( $download, content => "capture_all=on&url=$percent_encoded_url" );
-		$run++;
-	} while ( ( $mech->status() < 200 || $mech->status() > 299 ) && $run <= $tries );
+		my $sleep = ( $opts{T} ) ? int( $opts{T} ) : 10;
+		say "Sleep $sleep seconds in order not to exceed request limit.";
+		sleep( $sleep );
 	
-	say 'HTTP STATUS: ' . $mech->status();
-	say 'Tries: ' . $run;
+		say 'run #' . ++$run;
+		
+		$mech->submit_form( form_name => "wwmform_save",
+			fields => {
+				url => $_[0],
+				capture_all => 'on',
+				#capture_outlinks => 'on',
+				#capture_screenshot => 'on',
+				#'wm-save-mywebarchive' => 'on',
+			} 
+		);
+	} while ( !$mech->success() && $run <= $tries );
+	
+	#print $mech->content(format=>'text');
+	
+	say 'SUCCESS' if $mech->success();
 	#say 'CONTENT: ' . $mech->text();
 }
+
+# LinkExtor callback
+sub get_links {
+	my($tag, %attr) = @_;
+	return if $tag ne 'a' && $tag ne 'area' && $tag ne 'frame' && $tag ne 'iframe';
+	grep {$raw_urls{$_}++} values %attr;
+}
+
 
 # downloads the available API of URL in arg1
 # returns hashref to decoded JSON or error message
@@ -910,7 +969,6 @@ sub get_wayback_available
 	my $download = 'https://archive.org/wayback/available?url=' . $av_url->host . $av_path_query;
 	my $json = '{}';
 	
-	my $mech = WWW::Mechanize->new( agent => 'wonderbot 1.01' );
 	$mech->get( $download );
 	my $json = $mech->content( raw => 1 );
 	
