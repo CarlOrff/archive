@@ -386,11 +386,13 @@ foreach my $url ( @urls ) {
 			else {
 				$title = $url;
 			}
+			$title = trim($title);
 			print length($title), " characters: \"$title\"\n";
 			
 			# we assume that the longest description is the best
 			print "DESCRIPTION ";
 			$description = reduce { length $a > length $b ? $a : $b } map {$_ if defined $_} ($scraper->{'open_graph_description'},$scraper->{'dublin_core_description'},$scraper->{'dublin_core_description2'},$scraper->{'twitter_description'},$scraper->{'dublin_core_abstract'},$scraper->{'dublin_core_abstract2'},$scraper->{'meta_description'},$scraper->{'meta_description2'});
+			$description = trim($description);
 			print length($description), " characters: \"$description\"\n";
 			
 			# join authors
@@ -410,6 +412,7 @@ foreach my $url ( @urls ) {
 			else {
 				$author = '';
 			}
+			$author = trim($author);
 			print length($author), " characters: \"$author\"\n";
 			
 			# record language
@@ -432,6 +435,7 @@ foreach my $url ( @urls ) {
 			else {
 				$language = '';
 			}
+			$language = trim($language);
 			print length($language), " characters: \"$language\"\n";
 			
 			#add to list
@@ -576,6 +580,7 @@ foreach my $url ( @urls ) {
 			else {
 				$title = $url;
 			}
+			$title = trim($title);
 			print length($title), " characters \"$title\"\n";
 			
 			# Find description
@@ -585,6 +590,7 @@ foreach my $url ( @urls ) {
 				$description = $infohash{'Subject'};
 			}
 			else { $description = ''; }
+			$description = trim($description);
 			print length($description), " characters \"$description\"\n";
 			
 			# Find author
@@ -599,6 +605,7 @@ foreach my $url ( @urls ) {
 				$author = join($author_delimiter,keys %authors);
 			}
 			
+			$author = trim($author);
 			print length $author, " characters \"$author\"\n";
 		}
 			
@@ -966,6 +973,7 @@ sub get_wayback_available
 	my $av_url = new URI $_[0];
 	my $av_path_query = $av_url->path;
 	$av_path_query .= '?'.$av_url->query if length $av_url->query > 0;
+	$av_path_query =~ s/&/%26/g;
 
 	my $download = 'https://archive.org/wayback/available?url=' . $av_url->host . $av_path_query;
 	my $json = '{}';
@@ -977,4 +985,12 @@ sub get_wayback_available
 	eval { $json = decode_json $json };
 	return $@ if $@;
 	return $json;
+}
+
+# like PHP
+sub trim {
+	my $trim = shift;
+	$trim =~ s/^\s+//;
+	$trim =~ s/\s+$//;
+	return $trim;
 }

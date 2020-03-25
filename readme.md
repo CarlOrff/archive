@@ -65,6 +65,8 @@ There are several optional switches
 - Script can save all linked URLs, too (IA has restricted this service to logged-in users running JavaScript).
 - Debug mode (does not save to IA)
 - WordPress bug fixed (8-Bit ASCII in text lead to database error).
+- Ampersand bug in 'URL available' request fixed.
+- Trim metadata.
 
 ### v1.8
 
