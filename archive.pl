@@ -791,7 +791,7 @@ if ($opts{l}) {
 
 	foreach my $linked (keys %linked) {
 		
-		next if ( $linked =~ /^(ftps?|javascript|mailto):/);
+		next if ( $linked =~ /^(ftps?|javascript|mailto|whatsapp):/);
 		next if exists( $urls_seen{ $linked } );
 		
 		say '#' . ++$lrun . ' ' . $linked;

@@ -58,6 +58,12 @@ There are several optional switches
 
 ## Changelog
 
+### v2.0
+
+- Script can save all linked URLs, too (IA has restricted this service to logged-in users running JavaScript).
+- Debug mode (does not save to IA)
+- WordPress bug fixed (8-Bit ASCII in text lead to database error).
+
 ### v1.8
 
 - Post HTML outfile to WordPress
@@ -110,8 +116,8 @@ Not published.
 
 ## Project Page
 
-[https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/](https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=archive-pl-1.8&ib_medium=repository&ib_source=readme&ib_content=projectpage)
+[https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/](https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=archive-pl-2.0&ib_medium=repository&ib_source=readme&ib_content=projectpage)
 
 ## Windows Binaries
 
-Binaries for Windows 32 or Windows 64 bit (XP or higher) can be obtained from the project page [https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/](https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=archive-pl-1.7&ib_medium=repository&ib_source=readme&ib_content=binaries)
+Binaries for Windows 32 or Windows 64 bit (XP or higher) can be obtained from the project page [https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/](https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=archive-pl-2.0&ib_medium=repository&ib_source=readme&ib_content=binaries)
