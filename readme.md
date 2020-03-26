@@ -67,6 +67,7 @@ There are several optional switches
 - WordPress bug fixed (8-Bit ASCII in text lead to database error).
 - Ampersand bug in 'URL available' request fixed.
 - Trim metadata.
+- Disregard robots.txt by default.
 
 ### v1.8
 
