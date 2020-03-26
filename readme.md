@@ -54,7 +54,7 @@ There are several optional switches
 
 `-u <URL>` Feed or WordPress (`xmlrpc.php`) URL
 
-`-w` use wget (PowerShell on Windows)
+`-w` *deprecated*
 
 `-x <secret consumer key>` Twitter secret consumer key
 
