@@ -20,6 +20,7 @@
 #               -n <username>             FTP or WordPress user
 #               -o <host>                 FTP host
 #               -p <password>             FTP or WordPress password
+#               -r                        Obey robots.txt
 #               -s                        Save feed in Wayback machine (feed only)
 #               -t <access token>         Twitter access token
 #               -T <int>                  delay per URL in seconds to respect IA's request limit
@@ -116,7 +117,7 @@ my %linked;
 
 # fetch options
 my %opts;
-getopts('ac:d:Df:hi:k:ln:o:p:st:T:u:vwx:y:z:', \%opts);
+getopts('ac:d:Df:hi:k:ln:o:p:rst:T:u:vwx:y:z:', \%opts);
 
 my @commands = [
 	'-a                        Atom feed instead of HTML output',
@@ -131,6 +132,7 @@ my @commands = [
 	'-n <username>             FTP or WordPress user',
 	'-o <host>                 FTP host',
 	'-p <password>             FTP or WordPress password',
+    '-r                        Obey robots.txt',
 	'-s                        Save feed in Wayback machine',
 	'-t <access token>         Twitter access token',
 	'-T <seconds>              delay per URL in seconds to respect IA\'s request limit',
@@ -215,15 +217,23 @@ else { die "Could not open $infile"; }
 ##################################################################################################
 # initialize robot object
 ##################################################################################################
-
-my $ua = LWP::RobotUA->new($ua_string, 'bot@example.com');
-$ua->delay(0); # minutes (0 because we don't crawl domains recursively)
-$ua->ssl_opts(  # we don't verify hostnames of TLS URLs
-    verify_mode   => 'SSL_VERIFY_PEER',
-    verify_hostname => 0, 
-);
-$ua->rules(WWW::RobotRules->new($ua_string)); # obey robots.txt
-
+my $ua;
+if ($opts{r}) {
+	$ua = LWP::RobotUA->new($ua_string, 'bot@example.com');
+	$ua->delay(0); # minutes (0 because we don't crawl domains recursively)
+	$ua->ssl_opts(  # we don't verify hostnames of TLS URLs
+		verify_mode   => 'SSL_VERIFY_PEER',
+		verify_hostname => 0, 
+	);
+	$ua->rules(WWW::RobotRules->new($ua_string)) if $opts{r}; # obey robots.txt
+}
+else {
+	$ua = LWP::UserAgent->new($ua_string, 'ua@example.com');
+	$ua->ssl_opts(  # we don't verify hostnames of TLS URLs
+		verify_mode   => 'SSL_VERIFY_PEER',
+		verify_hostname => 0, 
+	);
+}
 # Save all size of twitter images
 
 ##################################################################################################
