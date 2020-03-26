@@ -798,26 +798,6 @@ foreach my $url ( @urls ) {
 } # main loop
 
 ##################################################################################################
-# save linked documents
-##################################################################################################	
-if ($opts{l}) {
-
-	say "\nsaving linked documents:";
-	
-	my $lrun = 0;
-
-	foreach my $linked (keys %linked) {
-		
-		next if ( $linked =~ /^(ftps?|javascript|mailto|whatsapp):/);
-		next if exists( $urls_seen{ $linked } );
-		
-		say '#' . ++$lrun . ' ' . $linked;
-		
-		download_wayback( $linked ) if !$opts{D};
-	}
-}
-
-##################################################################################################
 # print file
 ##################################################################################################
 
@@ -844,7 +824,7 @@ if ( $wp ) {
 	 
 	# fix atabse saving error with 8bit ASCII 
 	my $post = $api->post()->create(
-		post_title    => $out_title, '^\n\x20-\x25\x27-\x7e',
+		post_title    => $out_title,
 		#post_date_gmt => $dt,
 		post_content  => encode_entities($outfile, '^\n\x20-\x25\x27-\x7e'),
 		#post_author   => 42,
@@ -889,6 +869,31 @@ if (length $opts{o} > 0) {
     
     # close connection
     $ftp->quit;
+}
+
+##################################################################################################
+# save linked documents
+##################################################################################################	
+if ($opts{l}) {
+
+	if (defined keys %linked) {
+		say "\nsaving linked documents:";
+		
+		my $lrun = 0;
+
+		foreach my $linked (keys %linked) {
+			
+			next if ( $linked =~ /^(ftps?|javascript|mailto|whatsapp):/);
+			next if exists( $urls_seen{ $linked } );
+			
+			say '#' . ++$lrun . ' ' . $linked;
+			
+			download_wayback( $linked ) if !$opts{D};
+		}
+	}
+	else {
+		say "No links detected!";
+	}
 }
 
 ##################################################################################################
