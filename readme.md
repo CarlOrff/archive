@@ -127,4 +127,4 @@ Not published.
 
 ## Windows Binaries
 
-Binaries for Windows 32 or Windows 64 bit (XP or higher) can be obtained from the project page [https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/](https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=archive-pl-2.0&ib_medium=repository&ib_source=readme&ib_content=binaries)
+Binaries Windows 64 bit (XP or higher) can get obtained from the project page [https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/](https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=archive-pl-2.0&ib_medium=repository&ib_source=readme&ib_content=binaries)
