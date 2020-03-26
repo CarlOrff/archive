@@ -26,6 +26,8 @@ There are several optional switches
 
 `-d <path>` FTP path
 
+`- D` Debug mode - don't save to Internet Archive
+
 `-f <filename>` name of input file if other than `urls.txt`
 
 `-h` Show commands

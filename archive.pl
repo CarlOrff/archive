@@ -123,7 +123,7 @@ my @commands = [
 	'-a                        Atom feed instead of HTML output',
 	'-c <creator>              Name of the feed author (feed only)',
 	'-d <path>                 FTP path',
-	'-D                        Debug mode - don\'t save to Internaet Archive',
+	'-D                        Debug mode - don\'t save to Internet Archive',
 	'-f <filename>             Other input file name than urls.txt',
 	'-h                        show commands',
 	'-i <title>                Feed or HTML title',
