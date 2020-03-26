@@ -42,6 +42,8 @@ There are several optional switches
 
 `-p <password>` FTP or WordPress password
 
+`-r` obey robots.txt
+
 `-s` save feed in Wayback machine
 
 `-t <access token>` Twitter access token
