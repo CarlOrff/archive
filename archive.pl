@@ -826,7 +826,7 @@ if ( $wp ) {
 	my $post = $api->post()->create(
 		post_title    => $out_title,
 		#post_date_gmt => $dt,
-		post_content  => encode_entities($outfile, '^\n\x20-\x25\x27-\x7e'),
+		post_content  => encode_entities( decode_entities( $outfile ), '^\n\x20-\x25\x27-\x7e' ),
 		#post_author   => 42,
 	);
 }
@@ -961,7 +961,7 @@ sub download_wayback
 				say "Sleep $sleep seconds in order not to exceed request limit.";
 				sleep( $sleep );
 			
-				say "run #$try." . ++$run;
+				print "run #$try." . ++$run;
 				
 				$mech->submit_form( form_name => "wwmform_save",
 					fields => {
@@ -972,18 +972,19 @@ sub download_wayback
 						#'wm-save-mywebarchive' => 'on',
 					} 
 				);
+				
+				print ' SUCCESS' if $mech->success();
+				print ' HTTP ', $mech->status();
+				#print ' CONTENT: ' . $mech->text();
+				#print ' TEXT: ' .  $mech->content(format=>'text');
+				say '';
+			
 			} while ( !$mech->success() && $run <= $max_runs );
-			
-			#print $mech->content(format=>'text');
-			
-			print ' SUCCESS' if $mech->success();
-			print ' HTTP ', $mech->status();
-			#say 'CONTENT: ' . $mech->text();
 		}
 		
 	} while ( $@ && $try <= $max_tries);
 	
-	print ' ', $@ if $@;
+	say $@ if $@;
 }
 
 # LinkExtor callback
