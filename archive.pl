@@ -883,7 +883,7 @@ if ($opts{l}) {
 
 		foreach my $linked (keys %linked) {
 			
-			next if ( $linked =~ /^(ftps?|javascript|mailto|whatsapp):/);
+			next if ( $linked =~ /^(fb-messenger|ftps?|javascript|live|mailto|whatsapp):/);
 			next if exists( $urls_seen{ $linked } );
 			
 			say '#' . ++$lrun . ' ' . $linked;
@@ -942,40 +942,54 @@ sub check_scraped {
 }
 
 sub download_wayback
-{		
-	$mech->get("https://web.archive.org/save/");
+{	
+    local $@;
+	my $max_tries = 10;
+	my $try = 0;
 	
-	my $tries = 3;
-	my $run = 0;
-	do {
-	
-		my $sleep = ( $opts{T} ) ? int( $opts{T} ) : 10;
-		say "Sleep $sleep seconds in order not to exceed request limit.";
-		sleep( $sleep );
-	
-		say 'run #' . ++$run;
+	do {		
+		$try++;
 		
-		$mech->submit_form( form_name => "wwmform_save",
-			fields => {
-				url => $_[0],
-				capture_all => 'on',
-				#capture_outlinks => 'on',
-				#capture_screenshot => 'on',
-				#'wm-save-mywebarchive' => 'on',
-			} 
-		);
-	} while ( !$mech->success() && $run <= $tries );
+		eval {
+			$mech->get("https://web.archive.org/save/");
+			
+			my $max_runs = 3;
+			my $run = 0;
+			do {
+			
+				my $sleep = ( $opts{T} ) ? int( $opts{T} ) : 10;
+				say "Sleep $sleep seconds in order not to exceed request limit.";
+				sleep( $sleep );
+			
+				say "run #$try." . ++$run;
+				
+				$mech->submit_form( form_name => "wwmform_save",
+					fields => {
+						url => $_[0],
+						capture_all => 'on',
+						#capture_outlinks => 'on',
+						#capture_screenshot => 'on',
+						#'wm-save-mywebarchive' => 'on',
+					} 
+				);
+			} while ( !$mech->success() && $run <= $max_runs );
+			
+			#print $mech->content(format=>'text');
+			
+			print ' SUCCESS' if $mech->success();
+			print ' HTTP ', $mech->status();
+			#say 'CONTENT: ' . $mech->text();
+		}
+		
+	} while ( $@ && $try <= $max_tries);
 	
-	#print $mech->content(format=>'text');
-	
-	say 'SUCCESS' if $mech->success();
-	#say 'CONTENT: ' . $mech->text();
+	print ' ', $@ if $@;
 }
 
 # LinkExtor callback
 sub get_links {
 	my($tag, %attr) = @_;
-	return if $tag ne 'a' && $tag ne 'area' && $tag ne 'frame' && $tag ne 'iframe';
+	return if $tag ne 'a' && $tag ne 'area' && $tag ne 'frame' && $tag ne 'iframe' && $tag ne 'track' && $tag ne 'source';
 	grep {$raw_urls{$_}++} values %attr;
 }
 
