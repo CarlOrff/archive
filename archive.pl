@@ -943,13 +943,13 @@ sub check_scraped {
 
 sub download_wayback
 {	
-    local $@;
 	my $max_tries = 10;
 	my $try = 0;
 	
 	do {		
 		$try++;
 		
+		local $@;
 		eval {
 			$mech->get("https://web.archive.org/save/");
 			
@@ -980,11 +980,11 @@ sub download_wayback
 				say '';
 			
 			} while ( !$mech->success() && $run <= $max_runs );
-		}
+		};
+		
+		say $@ if $@;
 		
 	} while ( $@ && $try <= $max_tries);
-	
-	say $@ if $@;
 }
 
 # LinkExtor callback
@@ -1008,11 +1008,14 @@ sub get_wayback_available
 	my $download = 'https://archive.org/wayback/available?url=' . $av_url->host . $av_path_query;
 	my $json = '{}';
 	
-	$mech->get( $download );
-	my $json = $mech->content( raw => 1 );
-	
 	local $@;
-	eval { $json = decode_json $json };
+	my $json;
+	eval {
+		$mech->get( $download );
+		$json = $mech->content( raw => 1 );
+	};
+	
+	$json = decode_json $json;
 	return $@ if $@;
 	return $json;
 }
