@@ -964,10 +964,10 @@ sub download_wayback
 			my $run = 0;
 			do {
 			
-				my $sleep = ( exists( $opts{T} ) ) ? int( $opts{T} ) : 10;
+				my $sleep = ( exists( $opts{T} ) ) ? $opts{T} : 10;
 				if ( $sleep > 0 ) {
 					say "Sleep $sleep seconds in order not to exceed request limit.";
-					sleep( $sleep );
+					select(undef, undef, undef, $sleep); # sleep() eats integers only
 				}
 			
 				print "run #$try." . ++$run;
