@@ -883,11 +883,13 @@ if ($opts{l}) {
 	if (defined keys %linked) {
 		say "\nsaving linked documents:";
 		
+		grep { delete( $linked{ $_ } ) if $_ !~ /^https?:\/\/\w/ } keys %linked;
+		say 'Saving ' . scalar( values %linked ) . ' URLs';
+		
 		my $lrun = 0;
 
 		foreach my $linked (keys %linked) {
 			
-			next if ( $linked =~ /^(data|fb-messenger|ftps?|javascri?pt|live|mailto|tel|whatsapp):/);
 			next if exists( $urls_seen{ $linked } );
 			
 			say '#' . ++$lrun . ' ' . $linked;

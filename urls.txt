@@ -1,2 +1,1 @@
-﻿https://gnupg.org/documentation/manpage.html
-https://2019.www.torproject.org/docs/tor-manual.html.en
+﻿http://www.kunstvoll-vellmar.de/
