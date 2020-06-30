@@ -221,19 +221,19 @@ else { die "Could not open $infile"; }
 ##################################################################################################
 # initialize robot object
 ##################################################################################################
-my $ua;
+my $lwp;
 if ($opts{r}) {
-	$ua = LWP::RobotUA->new($ua_string, 'bot@example.com');
-	$ua->delay(0); # minutes (0 because we don't crawl domains recursively)
-	$ua->ssl_opts(  # we don't verify hostnames of TLS URLs
+	$lwp = LWP::RobotUA->new($ua_string, 'bot@example.com');
+	$lwp->delay(0); # minutes (0 because we don't crawl domains recursively)
+	$lwp->ssl_opts(  # we don't verify hostnames of TLS URLs
 		verify_mode   => 'SSL_VERIFY_PEER',
 		verify_hostname => 0, 
 	);
-	$ua->rules(WWW::RobotRules->new($ua_string)) if $opts{r}; # obey robots.txt
+	$lwp->rules(WWW::RobotRules->new($ua_string)) if $opts{r}; # obey robots.txt
 }
 else {
-	$ua = LWP::UserAgent->new($ua_string, 'ua@example.com');
-	$ua->ssl_opts(  # we don't verify hostnames of TLS URLs
+	$lwp = LWP::UserAgent->new($ua_string, 'ua@example.com');
+	$lwp->ssl_opts(  # we don't verify hostnames of TLS URLs
 		verify_mode   => 'SSL_VERIFY_PEER',
 		verify_hostname => 0, 
 	);
@@ -294,7 +294,7 @@ foreach my $url ( @urls ) {
 	print "\nfetching ", $url, "\n";
 	
 	# fetch URL
-	my $r = $ua->request(HTTP::Request->new( GET => $url ));
+	my $r = $lwp->request(HTTP::Request->new( GET => $url ));
     
     if ($r->is_success) {
 	
