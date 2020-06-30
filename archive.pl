@@ -20,6 +20,7 @@
 #               -n <username>             FTP or WordPress user
 #               -o <host>                 FTP host
 #               -p <password>             FTP or WordPress password
+#               -P <proxy>                A proxy, fi. http://localhost:9050 for TOR service
 #               -r                        Obey robots.txt
 #               -s                        Save feed in Wayback machine (feed only)
 #               -t <access token>         Twitter access token
@@ -105,9 +106,6 @@ my $wayback_url = 'https://web.archive.org/save/';
 
 my $download_method = 0; # 0 (GET) or 1 (POST)
 
-# init WWW::Mechanize
-my $mech = WWW::Mechanize->new( agent => $ua, autocheck => 1 );
-
 # init LinkExtor
 my %raw_urls;
 my $p = HTML::LinkExtor->new(\&get_links);
@@ -117,7 +115,7 @@ my %linked;
 
 # fetch options
 my %opts;
-getopts('ac:d:Df:hi:k:ln:o:p:rst:T:u:vwx:y:z:', \%opts);
+getopts('ac:d:Df:hi:k:ln:o:p:P:rst:T:u:vwx:y:z:', \%opts);
 
 my @commands = [
 	'-a                        Atom feed instead of HTML output',
@@ -132,6 +130,7 @@ my @commands = [
 	'-n <username>             FTP or WordPress user',
 	'-o <host>                 FTP host',
 	'-p <password>             FTP or WordPress password',
+	'-P <proxy>                A proxy, fi. http://localhost:9050 for TOR service',
     '-r                        Obey robots.txt',
 	'-s                        Save feed in Wayback machine',
 	'-t <access token>         Twitter access token',
@@ -156,6 +155,11 @@ elsif ($opts{v}) {
 	say "This is archive.pl $VERSION by Ingram Braun";
 	exit;
 }
+
+# init WWW::Mechanize
+my $mech = WWW::Mechanize->new( agent => $ua, autocheck => 1 );
+# set proxy
+$mech->proxy( [ qw( http https ) ] => $opts{P} ) if ( $opts{P} && length $opts{P} > 0 );
 
 # if credentials available the -o switch indicates FTP, WP otherwise,
 my $wp;
@@ -770,7 +774,7 @@ foreach my $url ( @urls ) {
 		}
 		else { $urls{$url}++; }
 		
-		foreach ( keys %urls ) { 
+		foreach ( keys %urls ) {
 		
 			my $available = get_wayback_available( $_ );
 			
@@ -883,7 +887,7 @@ if ($opts{l}) {
 
 		foreach my $linked (keys %linked) {
 			
-			next if ( $linked =~ /^(fb-messenger|ftps?|javascript|live|mailto|whatsapp):/);
+			next if ( $linked =~ /^(data|fb-messenger|ftps?|javascri?pt|live|mailto|tel|whatsapp):/);
 			next if exists( $urls_seen{ $linked } );
 			
 			say '#' . ++$lrun . ' ' . $linked;
@@ -952,14 +956,17 @@ sub download_wayback
 		local $@;
 		eval {
 			$mech->get("https://web.archive.org/save/");
+			#say ' CONTENT: ' . $mech->text();
 			
 			my $max_runs = 3;
 			my $run = 0;
 			do {
 			
-				my $sleep = ( $opts{T} ) ? int( $opts{T} ) : 10;
-				say "Sleep $sleep seconds in order not to exceed request limit.";
-				sleep( $sleep );
+				my $sleep = ( exists( $opts{T} ) ) ? int( $opts{T} ) : 10;
+				if ( $sleep > 0 ) {
+					say "Sleep $sleep seconds in order not to exceed request limit.";
+					sleep( $sleep );
+				}
 			
 				print "run #$try." . ++$run;
 				
