@@ -42,6 +42,9 @@
 use strict;
 
 
+my $start = time;
+
+
 #use diagnostics;
 #use warnings;
 use feature 'say';
@@ -901,6 +904,9 @@ if ($opts{l}) {
 		say "No links detected!";
 	}
 }
+
+my $duration = time - $start;
+say "Execution time: $duration s";
 
 ##################################################################################################
 # Subroutines
