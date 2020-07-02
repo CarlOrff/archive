@@ -93,7 +93,7 @@ if ( scalar @ARGV == 0 ) {
 ##################################################################################################
 
 
-my $VERSION = "2.0";
+my $VERSION = "2.1";
 my $botname = "archive.pl-$VERSION";
 my @urls;
 my $author_delimiter = '/';
@@ -101,8 +101,8 @@ my $author_delimiter = '/';
 # user agent string
 my $atomurl = "https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=$botname&ib_medium=atom&ib_source=outfile";
 my $htmlurl = "https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=$botname&ib_medium=html&ib_source=outfile";
-my $scripturl = 'https://bit.ly/2JbE2qH';
-my $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36';
+my $scripturl = 'https://bit.ly/2ZvbkZD';
+my $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36';
 my $ua_string = "$ua +$scripturl";
 
 my $wayback_url = 'https://web.archive.org/save/';
