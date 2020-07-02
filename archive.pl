@@ -120,7 +120,7 @@ my %linked;
 my %opts;
 getopts('ac:d:Df:hi:k:ln:o:p:P:rst:T:u:vwx:y:z:', \%opts);
 
-my @commands = [
+my @commands = (
 	'-a                        Atom feed instead of HTML output',
 	'-c <creator>              Name of the feed author (feed only)',
 	'-d <path>                 FTP path',
@@ -133,25 +133,23 @@ my @commands = [
 	'-n <username>             FTP or WordPress user',
 	'-o <host>                 FTP host',
 	'-p <password>             FTP or WordPress password',
-	'-P <proxy>                A proxy, fi. http://localhost:9050 for TOR service',
+	'-P <proxy>                A proxy server, fi. socks4://localhost:9050 for TOR service',
     '-r                        Obey robots.txt',
 	'-s                        Save feed in Wayback machine',
 	'-t <access token>         Twitter access token',
-	'-T <seconds>              delay per URL in seconds to respect IA\'s request limit',
+	"-T <seconds>              delay per URL in seconds to respect IA's request limit",
 	'-u <URL>                  Feed or WordPress (xmlrpc.php) URL',
 	'-v                        Version info',
 	'-w                        *deprecated*',
 	'-x <secret consumer key>  Twitter secret consumer key',
 	'-y <secret access token>  Twitter secret access token',
 	'-z <time zone>            Time zone (WordPress only)',
-];
+);
 
 # Display options and version
 if ($opts{h}) {
-	say 'AVAILABLE OPTIONS';
-	say "";
-	grep { say "\t$_"; } sort @commands;
-	say "";
+	local $, = "\n\t";
+	print "\nAVAILABLE OPTIONS:\n", @commands, "\n";
 	exit;
 }
 elsif ($opts{v}) {
