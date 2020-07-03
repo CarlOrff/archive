@@ -47,6 +47,7 @@ my $start = time;
 
 #use diagnostics;
 #use warnings;
+#use Data::Dumper;
 use feature 'say';
 use utf8;
 
@@ -233,7 +234,7 @@ if ($opts{r}) {
 	$lwp->rules(WWW::RobotRules->new($ua_string)) if $opts{r}; # obey robots.txt
 }
 else {
-	$lwp = LWP::UserAgent->new($ua_string, 'ua@example.com');
+	$lwp = LWP::UserAgent->new( agent => $ua_string );
 	$lwp->ssl_opts(  # we don't verify hostnames of TLS URLs
 		verify_mode   => 'SSL_VERIFY_PEER',
 		verify_hostname => 0, 
@@ -728,8 +729,8 @@ foreach my $url ( @urls ) {
 	
 	# URL not fetched
 	else {
-	
-		print "failed!\n";
+		print "failed: " . $r->title . "\n";
+
         my $warning = 'WARNING: cannot fetch ' . $encoded_url;
         
         if ( $opts{a} ) {
