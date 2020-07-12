@@ -962,7 +962,7 @@ sub download_wayback
 		
 		local $@;
 		eval {
-			$mech->get("https://web.archive.org/save/");
+			$mech->get( $wayback_url );
 			#say ' CONTENT: ' . $mech->text();
 			
 			my $max_runs = 3;
@@ -1026,10 +1026,9 @@ sub get_wayback_available
 	my $json;
 	eval {
 		$mech->get( $download );
-		$json = $mech->content( raw => 1 );
+		$json = decode_json $mech->content( raw => 1 );
 	};
 	
-	$json = decode_json $json;
 	return $@ if $@;
 	return $json;
 }
