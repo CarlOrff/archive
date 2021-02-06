@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License along with thi
 
 ## Requirements
 
-Perl 5.24 (earlier versions not tested but it is likely to work with every build that is capabale of getting the required modules installed). If there are issues with installing the `XMLRPC::lite` module, do it with CPAN's notest pragma.
+Perl 5.24 (earlier versions not tested but it is likely to work with every build that is capabale of getting the required modules installed). If there are issues with installing the `XMLRPC::lite` module, do it with CPAN's `notest` pragma.
 
 ## Usage
 
@@ -71,7 +71,7 @@ There are several optional switches
 ### v2.1
 
 - Introduced option `-P` to connect to a proxy server that can rotate IPs (fi. TOR).
-- User agent bug in LWP::UserAgent constructor call fixed.
+- User agent bug in `LWP::UserAgent` constructor call fixed.
 - `-T` can operate with floats.
 - Screen logging enhanced (total execution time and total number of links).
 - IA JSON parsing more reliable.
