@@ -352,7 +352,6 @@ foreach my $url ( @urls ) {
 							
 							for my $entry ( $feed->entries ) {
 								push( @links, $entry->link );
-								say $entry->link;
 							}
 						}
 					}
