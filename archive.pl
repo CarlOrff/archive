@@ -52,7 +52,6 @@ use feature 'say';
 use utf8;
 
 use Browser::Open qw( open_browser );
-#use Data::Dumper;
 use DateTime;
 use DateTime::Format::W3CDTF;
 use Feed::Find;
