@@ -52,7 +52,7 @@ use feature 'say';
 use utf8;
 
 use Browser::Open qw( open_browser );
-#use Data::Dumper;
+use Data::Dumper;
 use DateTime;
 use DateTime::Format::W3CDTF;
 use Feed::Find;
@@ -344,22 +344,25 @@ foreach my $url ( @urls ) {
 					
 					foreach my $feed_url ( @feeds ) {
 						
-						local $@;
+						say "FEED $feed_url";
 						
-						eval {
+						
+						
+						#my $feed = new XML::Feed;
+						#my $feed = XML::Feed->parse( URI->new( $feed_url ) );
 
-							say "FEED $feed_url";
-							my $feed = XML::Feed->parse(URI->new( $feed_url ));
-							
-							for my $entry ( $feed->entries ) {
-								push( @links, $entry->link );
-								say $entry->link;
-							}
-						}
+						#for my $entry ( $feed->entries ) {say 'HHH';
+						#print $entry->title, " ", $entry->link, "\n\n";
+
+						#my $feed_entry = XML::Feed->get_uri($uri)->entries;
+
+						my $feed = XML::Feed->parse(URI->new( $feed_url ))
+						or die XML::Feed->errstr, "\n", Dumper($feed);
+						print $feed->title, "\n";
+
+ 
 					}
 				}
-				
-				say "found $#links links";
 			}
 		
 			# Properties as lower case since Web::Scraper's contains()-method is case sensitive.
