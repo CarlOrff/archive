@@ -954,13 +954,13 @@ sub check_scraped {
 
 sub download_wayback
 {	
-	my $max_tries = 10;
+	my $max_tries = 2;
 	my $try = 0;
+	local $@;
 	
 	do {		
 		$try++;
 		
-		local $@;
 		eval {
 			$mech->get( $wayback_url );
 			#say ' CONTENT: ' . $mech->text();
@@ -995,10 +995,10 @@ sub download_wayback
 			
 			} while ( !$mech->success() && $run <= $max_runs );
 		};
-		
+
 		say $@ if $@;
 		
-	} while ( $@ && $try <= $max_tries);
+	} while ( $@ && $try < $max_tries);
 }
 
 # LinkExtor callback
