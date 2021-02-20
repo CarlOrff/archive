@@ -262,18 +262,21 @@ foreach my $url ( @urls ) {
 	# don't fetch empty URLs
 	next if length $url < 1 || exists( $urls_seen{ $url } ); # avoid empty lines or duplicate URLs
 	
-	say "Start processing task #" . ++$count . ' ' . $url;
-	$urls_seen{ $url }++;    #avoid duplicate URLs
-	
 	my $parsed_url = new URI $url;
-	
-	my $scheme = $parsed_url->scheme;
 	my $host = $parsed_url->host;
+	next if $host eq 'web.archive.org';  # IA doesn't save its own copies again
+	my $scheme = $parsed_url->scheme;
+	next if $scheme !~ /^https?$/;  # IA doen't save non-HTTP schemes
 	my $path = $parsed_url->path;
 	my $query = $parsed_url->query;
 	my $path_query = $path;
 	$path_query .= '?'.$query if length $query > 0;
 	my $hash = $parsed_url->fragment;	
+	
+	say "Start processing task #" . ++$count . ' ' . $url;
+	$urls_seen{ $url }++;    #avoid duplicate URLs
+	
+	
 	
 	# remove hash part:
     $url = $scheme.'://'.$host.$path_query;
@@ -357,7 +360,7 @@ foreach my $url ( @urls ) {
 					}
 				}
 				
-				say "found $#links links";
+				say 'found ' . ++$#links . ' links';
 			}
 		
 			# Properties as lower case since Web::Scraper's contains()-method is case sensitive.
@@ -912,7 +915,7 @@ if ($opts{l}) {
 	if (defined keys %linked) {
 		say "\nsaving linked documents:";
 		
-		grep { delete( $linked{ $_ } ) if $_ !~ /^https?:\/\/\w/ } keys %linked;
+		grep { delete( $linked{ $_ } ) if $_ !~ /^https?:\/\/\w/ || $_ =~ /^https?:\/\/\web\.archive\.org\// } keys %linked;
 		say 'Saving ' . scalar( values %linked ) . ' URLs';
 		
 		my $lrun = 0;
