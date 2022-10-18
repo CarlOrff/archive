@@ -5,6 +5,7 @@ ftp
 *.atom
 *.html
 *.log
+*.pl~
 *.sh
 *.txt~
 desktop.ini

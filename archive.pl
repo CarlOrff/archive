@@ -66,6 +66,7 @@ use Image::Info qw( dim image_info html_dim );
 use Image::Thumbnail;
 use JSON::XS qw ( decode_json );
 use List::Util qw( reduce );
+require LWP::Protocol::socks; # loaded automatically but must get installed
 use LWP::RobotUA;
 use MIME::Base64;
 use Net::FTP;
@@ -107,7 +108,7 @@ my $scripturl = 'https://bit.ly/3rBZOrV';
 my $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36 Edg/88.0.705.63';
 my $ua_string = "$ua +$scripturl";
 
-my $wayback_url = 'https://web.archive.org/save/';
+my $wayback_url = 'http://web.archive.org/save/';
 
 my $download_method = 0; # 0 (GET) or 1 (POST)
 
@@ -273,16 +274,9 @@ foreach my $url ( @urls ) {
 	$path_query .= '?'.$query if length $query > 0;
 	my $hash = $parsed_url->fragment;	
 	
-	say "Start processing task #" . ++$count . ' ' . $url;
-	$urls_seen{ $url }++;    #avoid duplicate URLs
-	
-	
-	
 	# remove hash part:
     $url = $scheme.'://'.$host.$path_query;
-    
-    $url =~ /(.+?\:\/\/)(.+?)($|\/.*)/;
-    my ($scheme,$host,$path_query) = ($1,$2,$3);
+	next if exists( $urls_seen{ $url } ); # avoid duplicate URLs
     
     # remove high chars in path and query params:
     $path_query = URI::Encode->new({double_encode => 0})->encode($path_query);
@@ -291,10 +285,14 @@ foreach my $url ( @urls ) {
     $host = domain_to_ascii( $host );
     
     # now use prepared URL
-    $url = $scheme.$host.$path_query;
+    $url = $scheme.'://'.$host.$path_query;
+	next if exists( $urls_seen{ $url } ); # avoid duplicate URLs
 	
 	# HTML encode URL
 	my $encoded_url = encode_entities( $url );
+	
+	say "Start processing task #" . ++$count . ' ' . $url;
+	$urls_seen{ $url }++;    #avoid duplicate URLs	
 	
 	# status message
 	print "\nfetching ", $url, "\n";
@@ -706,7 +704,7 @@ foreach my $url ( @urls ) {
 		
 		# Get thumb size
 		my($w, $h) = html_dim( image_info(\$thumb) );
-		$description = '<img ' . $w . $h . ' src="data:image/pgn;base64,' .  encode_base64($thumb) . '"/>' if length $thumb > 0;
+		$description = '<img ' . $w . $h . ' src="data:image/png;base64,' .  encode_base64($thumb) . '"/>' if length $thumb > 0;
 	
 		# Delete thumbnail
 		unlink $imgfile;
@@ -984,7 +982,7 @@ sub check_scraped {
 
 sub download_wayback
 {	
-	my $max_tries = 2;
+	my $max_tries = 5;
 	my $try = 0;
 	local $@;
 	
@@ -995,17 +993,22 @@ sub download_wayback
 			$mech->get( $wayback_url );
 			#say ' CONTENT: ' . $mech->text();
 			
+			
+			
+			my $sleep_default = 10;
+			my $sleep = 0;
 			my $max_runs = 3;
 			my $run = 0;
+			
 			do {
 			
-				my $sleep = ( exists( $opts{T} ) ) ? $opts{T} : 10;
-				if ( $sleep > 0 ) {
-					say "Sleep $sleep seconds in order not to exceed request limit.";
-					select(undef, undef, undef, $sleep); # sleep() eats integers only
-				}
+				$run++;
+				$sleep = $opts{T} if exists( $opts{T} );
+				$sleep = $sleep_default if ( $run > 1 || $try > 1 ) && $sleep < $sleep_default;
+				say "Sleep $sleep seconds in order not to exceed request limit.";
+				select(undef, undef, undef, $sleep); # sleep() eats integers only
 			
-				print "run #$try." . ++$run;
+				print "run #$try." . $run;
 				
 				$mech->submit_form( form_name => "wwmform_save",
 					fields => {
@@ -1049,7 +1052,7 @@ sub get_wayback_available
 	$av_path_query .= '?'.$av_url->query if length $av_url->query > 0;
 	$av_path_query =~ s/&/%26/g;
 
-	my $download = 'https://archive.org/wayback/available?url=' . $av_url->host . $av_path_query;
+	my $download = 'http://archive.org/wayback/available?url=' . $av_url->host . $av_path_query;
 	my $json = '{}';
 	
 	local $@;

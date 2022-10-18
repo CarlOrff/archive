@@ -68,11 +68,18 @@ There are several optional switches
 
 ## Changelog
 
+
+### v2.2
+
+- Fixed image data URLs bug.
+- Removed TLS from Wayback URLs (too many protocol errors).
+- Added `mirror.pl`.
+
 ### v2.1
 
 - Introduced option `-P` to connect to a proxy server that can rotate IPs (fi. TOR).
 - User agent bug in `LWP::UserAgent` constructor call fixed.
-- `-T` can operate with floats.
+- `-T` is able to eat floats.
 - Screen logging enhanced (total execution time and total number of links).
 - IA JSON parsing more reliable.
 
