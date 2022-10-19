@@ -47,7 +47,7 @@ my $start = time;
 
 #use diagnostics;
 #use warnings;
-#use Data::Dumper;
+use Data::Dumper;
 use feature 'say';
 use utf8;
 
@@ -118,6 +118,10 @@ my $p = HTML::LinkExtor->new(\&get_links);
 
 # linked URLs that should get saved, too
 my %linked;
+
+# set up blacklist
+my %blacklist;
+init_blacklist();
 
 # fetch options
 my %opts;
@@ -259,6 +263,8 @@ foreach my $url ( @urls ) {
 }
 
 foreach my $url ( @urls ) {
+	
+	say $url;
 
 	# don't fetch empty URLs
 	next if length $url < 1 || exists( $urls_seen{ $url } ); # avoid empty lines or duplicate URLs
@@ -781,7 +787,6 @@ foreach my $url ( @urls ) {
 
 ##################################################################################################
 # save in Wayback Machine
-# blocked by robots.txt, therefore we do it in a browser
 ##################################################################################################
 
 	if ( $opts{D} ) {
@@ -921,6 +926,8 @@ if ($opts{l}) {
 		foreach my $linked (keys %linked) {
 			
 			next if exists( $urls_seen{ $linked } );
+			next if url_is_blacklisted( $linked );
+			#say 'not blacklisted';
 			
 			say '#' . ++$lrun . ' ' . $linked;
 			
@@ -1065,6 +1072,183 @@ sub get_wayback_available
 	return $@ if $@;
 	return $json;
 }
+
+# checks if an URL is blacklisted.
+# arg 1: url
+
+sub url_is_blacklisted {
+
+	my $u = new URI $_[0];
+
+	foreach my $check (sort values %blacklist) {
+		
+		#say Dumper($check);
+		
+		my $h = $$check{host};
+		my $p = $$check{path};
+		my $q = $$check{query};
+		
+		if (length $h > 0) {
+			
+			next if index($h, '(?') != 0 && $u->host ne $h;
+			next if $u->host !~ /$h/;
+		}
+		#say 'host '. $h;
+		
+		if (length $p > 0) {
+			
+			next if index($p, '(?') != 0 && $u->path ne $p;
+			next if $u->path !~ /$p/;
+		}
+		#say 'path ' . $p;
+		
+		if (length $q > 0) {
+			
+			next if index($q, '(?') != 0 && $u->query ne $q;
+			next if $u->query !~ /$q/;
+		}
+		#say 'query ' . $q;
+		
+		return 1;
+	}
+	
+	return 0;
+}
+
+# generate blacklist (mainly of URLs that need login)
+sub init_blacklist {
+	
+	%blacklist = (
+		'Add to any' => {
+				'host'  => 'www.addtoany.com',
+				'path'  => qr/^\/add_to\//,
+				'query' => qr/\blinkurl=\b/,
+		},
+		'Blogger' => {
+				'host'  => 'www.blogger.com',
+				'path'  => qr/\.g$/,
+				'query' => '',
+		},
+		'Facebook 1' => {
+				'host'  => qr/(www\.)?facebook.com/,
+				'path'  => qr/^\/(sharer\/)?sharer?\.php$/,
+				'query' => qr/\bu=/,
+		},
+		'Facebook 2' => {
+				'host'  => 'www.facebook.com',
+				'path'  => '/dialog/feed',
+				'query' => qr/\blink=/,
+		},
+		'Facebook 3' => {
+				'host'  => 'www.facebook.com',
+				'path'  => '/dialog/share',
+				'query' => qr/\bhref=/,
+		},
+		'Google Plus' => {
+				'host'  => 'plus.google.com',
+				'path'  => '',
+				'query' => '',
+		},
+		'Google Tag Manager' => {
+				'host'  => 'www.googletagmanager.com',
+				'path'  => '/ns.html',
+				'query' => qr/\bid=/,
+		},
+		'Instagram' => {
+				'host'  => 'www.instagram.com',
+				'path'  => qr/^\/p\//,
+				'query' => '',
+		},
+		'Jimdo 1' => {
+				'host'  => 'a.jimdo.com',
+				'path'  => qr/^\/app\/auth\//,
+				'query' => '',
+		},
+		'Jimdo 2' => {
+				'host'  => 'cms.e.jimdo.com',
+				'path'  => qr/^\/app\/cms\//,
+				'query' => '',
+		},
+		'Jimdo 3' => {
+				'host'  => qr/\.jimdofree\.com$/,
+				'path'  => '/login',
+				'query' => '',
+		},
+		'Linked In 1' => {
+				'host'  => 'www.linkedin.com',
+				'path'  => '/shareArticle',
+				'query' => qr/\burl=/,
+		},
+		'Linked In 2' => {
+				'host'  => 'www.linkedin.com',
+				'path'  => '/sharing/share-offsite/',
+				'query' => qr/\burl=/,
+		},
+		'Pinterest' => {
+				'host'  => 'pinterest.com',
+				'path'  => qr/^\/pin\/create\/(link|button)\/?$/,
+				'query' => qr/\burl=/,
+		},
+		'Pocket' => {
+				'host'  => 'getpocket.com',
+				'path'  => '/edit',
+				'query' => qr/\burl=/,
+		},
+		'Telegram' => {
+				'host'  => 'telegram.me',
+				'path'  => '/share/url',
+				'query' => '',
+		},
+		'Tumblr' => {
+				'host'  => 'www.tumblr.com',
+				'path'  => '/share',
+				'query' => qr/\bu=/,
+		},
+		'Twitter 1' => {
+				'host'  => 'twitter.com',
+				'path'  => '/intent/tweet',
+				'query' => qr/\btext=/,
+		},
+		'Twitter 2' => {
+				'host'  => 'twitter.com',
+				'path'  => '/share',
+				'query' => qr/\b(url|text)=/,
+		},
+		'VK' => {
+				'host'  => 'vk.com',
+				'path'  => '/share.php',
+				'query' => qr/\burl=/,
+		},
+		'WhatsApp' => {
+				'host'  => qr/^(api|web)\.whatsapp\.com/,
+				'path'  => '/send',
+				'query' => qr/\btext=/,
+		},
+		'WordPress' => {
+				'host'  => '',
+				'path'  => qr/\/wp-(admin\/|login\.php$)/,
+				'query' => '',
+		},
+		'XING 1' => {
+				'host'  => 'www.xing.com',
+				'path'  => '/spi/shares/new',
+				'query' => qr/\burl=/,
+		},
+		'XING 2' => {
+				'host'  => 'www.xing.com',
+				'path'  => '/app/user',
+				'query' => qr/\bop=share\b/,
+		},
+		'?' => {
+				'host'  => '',
+				'path'  => '',
+				'query' => qr/\bshare=(facebook|email|instagram|jetpack-whatsapp|linkedin|pinterest|reddit|telegram|tumblr|twitter)\b/,
+		},
+	);
+		
+	#say Dumper(%blacklist);
+}
+
 
 # like PHP
 sub trim {
