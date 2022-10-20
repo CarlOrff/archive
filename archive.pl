@@ -1135,14 +1135,9 @@ sub init_blacklist {
 				'query' => qr/\bu=/,
 		},
 		'Facebook 2' => {
-				'host'  => 'www.facebook.com',
-				'path'  => '/dialog/feed',
-				'query' => qr/\blink=/,
-		},
-		'Facebook 3' => {
-				'host'  => 'www.facebook.com',
-				'path'  => '/dialog/share',
-				'query' => qr/\bhref=/,
+				'host'  => qr/(www\.)?facebook.com/,,
+				'path'  => qr/^\/dialog\/(feed|share)/,
+				'query' => qr/\b(href|link)=/,
 		},
 		'Google Plus' => {
 				'host'  => 'plus.google.com',
@@ -1184,6 +1179,11 @@ sub init_blacklist {
 				'path'  => '/sharing/share-offsite/',
 				'query' => qr/\burl=/,
 		},
+		'Open Authorization' => {
+				'host'  => '',
+				'path'  => qr/\/oauth2?\/.+/,
+				'query' => qr/.+=.+/,
+		},
 		'Pinterest' => {
 				'host'  => 'pinterest.com',
 				'path'  => qr/^\/pin\/create\/(link|button)\/?$/,
@@ -1194,9 +1194,29 @@ sub init_blacklist {
 				'path'  => '/edit',
 				'query' => qr/\burl=/,
 		},
+		'Stack Overflow 1' => {
+				'host'  => 'stackoverflow.com',
+				'path'  => qr/^\/users\/(login|signup)$/,
+				'query' => '',
+		},
+		'Stack Overflow 2' => {
+				'host'  => 'stackoverflow.com',
+				'path'  => '/teams/create/free',
+				'query' => '',
+		},
 		'Telegram' => {
 				'host'  => 'telegram.me',
 				'path'  => '/share/url',
+				'query' => '',
+		},
+		'Telekom' => {
+				'host'  => qr/login\.idm\.telekom\.com$/,
+				'path'  => '',
+				'query' => '',
+		},
+		'T-Online' => {
+				'host'  => 'login.t-online.de',
+				'path'  => '',
 				'query' => '',
 		},
 		'Tumblr' => {
@@ -1224,10 +1244,15 @@ sub init_blacklist {
 				'path'  => '/send',
 				'query' => qr/\btext=/,
 		},
-		'WordPress' => {
+		'WordPress 1' => {
 				'host'  => '',
 				'path'  => qr/\/wp-(admin\/|login\.php$)/,
 				'query' => '',
+		},
+		'WordPress 2' => {
+				'host'  => '',
+				'path'  => '',
+				'query' => qr/\bshare=(facebook|email|instagram|jetpack-whatsapp|linkedin|pinterest|pocket|reddit|telegram|tumblr|twitter)\b/,
 		},
 		'XING 1' => {
 				'host'  => 'www.xing.com',
@@ -1241,8 +1266,8 @@ sub init_blacklist {
 		},
 		'?' => {
 				'host'  => '',
-				'path'  => '',
-				'query' => qr/\bshare=(facebook|email|instagram|jetpack-whatsapp|linkedin|pinterest|reddit|telegram|tumblr|twitter)\b/,
+				'path'  => qr/\/(auth|login|register|sign(in|up))(\.\w+)?$/,
+				'query' => '',
 		},
 	);
 		

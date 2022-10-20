@@ -11,7 +11,7 @@ use LWP::RobotUA;
 use WWW::RobotRules;
 use URI;
 
-my $start_url = qw{ https://www.pius-kirchgessner.de/09_Persoenliches/Lebenslauf.htm };
+my $start_url = qw{ https://kianharaldkarimi.blogspot.com/ };
 my $pattern = '';
 my $host = URI->new(URI->new($start_url)->canonical)->host;
 
