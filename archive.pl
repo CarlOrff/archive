@@ -1144,6 +1144,11 @@ sub init_blacklist {
 				'path'  => '',
 				'query' => '',
 		},
+		'Google Marketing Platform' => {
+				'host'  => 'pubads.g.doubleclick.net',
+				'path'  => '',
+				'query' => qr/.+=.+/,
+		},
 		'Google Tag Manager' => {
 				'host'  => 'www.googletagmanager.com',
 				'path'  => '/ns.html',
@@ -1205,7 +1210,7 @@ sub init_blacklist {
 				'query' => '',
 		},
 		'Telegram' => {
-				'host'  => 'telegram.me',
+				'host'  => qr/^t(elegram)?\.me$/,
 				'path'  => '/share/url',
 				'query' => '',
 		},
