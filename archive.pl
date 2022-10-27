@@ -1244,9 +1244,14 @@ sub init_blacklist {
 				'path'  => '/share.php',
 				'query' => qr/\burl=/,
 		},
-		'WhatsApp' => {
+		'WhatsApp 1' => {
 				'host'  => qr/^(api|web)\.whatsapp\.com/,
 				'path'  => '/send',
+				'query' => qr/\btext=/,
+		},
+		'WhatsApp 2' => {
+				'host'  => 'wa.me',
+				'path'  => '',
 				'query' => qr/\btext=/,
 		},
 		'WordPress 1' => {
