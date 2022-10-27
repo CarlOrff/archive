@@ -1,5 +1,5 @@
 #!/usr/bin/perl
--T;
+#-T;
 
 #####a#############################################################################################
 # PURPOSE: extracts metada from HTML and PDF URLs, stores them in the Internet Archive
@@ -47,7 +47,7 @@ my $start = time;
 
 #use diagnostics;
 #use warnings;
-use Data::Dumper;
+require Data::Dumper;
 use feature 'say';
 use utf8;
 
