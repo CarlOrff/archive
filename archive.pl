@@ -1200,7 +1200,7 @@ sub init_blacklist {
 				'query' => qr/\burl=/,
 		},
 		'Stack Overflow 1' => {
-				'host'  => 'stackoverflow.com',
+		'host'  => qr/[^|\.](|askubuntu|serverfault|stack(|exchange|overflow)|superuser)\.com/,
 				'path'  => qr/^\/users\/(login|signup)$/,
 				'query' => '',
 		},
