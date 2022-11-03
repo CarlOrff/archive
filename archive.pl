@@ -1184,13 +1184,18 @@ sub init_blacklist {
 				'path'  => '/sharing/share-offsite/',
 				'query' => qr/\burl=/,
 		},
+		'Naver' => {
+				'host'  => 'share.naver.com',
+				'path'  => '/web/shareView.nhn',
+				'query' => qr/\burl=/,
+		},
 		'Open Authorization' => {
 				'host'  => '',
 				'path'  => qr/\/oauth2?\/.+/,
 				'query' => qr/.+=.+/,
 		},
 		'Pinterest' => {
-				'host'  => qr/^(www\.)pinterest.com/,
+				'host'  => qr/^(www\.)?pinterest.com$/,
 				'path'  => qr/^\/pin\/create\/(link|button)\/?$/,
 				'query' => qr/\burl=/,
 		},
