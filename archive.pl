@@ -1194,6 +1194,11 @@ sub init_blacklist {
 				'path'  => qr/\/oauth2?\/.+/,
 				'query' => qr/.+=.+/,
 		},
+		'Outlook Calendar' => {
+				'host'  => 'outlook.live.com',
+				'path'  => qr/^\/owa\/?$/,
+				'query' => qr/\bpath=\/calendar\/action\/compose\b/,
+		},
 		'Pinterest' => {
 				'host'  => qr/^(www\.)?pinterest.com$/,
 				'path'  => qr/^\/pin\/create\/(link|button)\/?$/,
