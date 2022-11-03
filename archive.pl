@@ -1190,7 +1190,7 @@ sub init_blacklist {
 				'query' => qr/.+=.+/,
 		},
 		'Pinterest' => {
-				'host'  => 'pinterest.com',
+				'host'  => qr/^(www\.)pinterest.com/,
 				'path'  => qr/^\/pin\/create\/(link|button)\/?$/,
 				'query' => qr/\burl=/,
 		},
@@ -1200,7 +1200,7 @@ sub init_blacklist {
 				'query' => qr/\burl=/,
 		},
 		'Stack Overflow 1' => {
-		'host'  => qr/[^|\.](|askubuntu|serverfault|stack(|exchange|overflow)|superuser)\.com$/,
+		'host'  => qr/[^|\.](askubuntu|serverfault|stack(exchange|overflow)|superuser)\.com$/,
 				'path'  => qr/^\/users\/(login|signup)$/,
 				'query' => '',
 		},
