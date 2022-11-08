@@ -1184,6 +1184,11 @@ sub init_blacklist {
 				'path'  => '/sharing/share-offsite/',
 				'query' => qr/\burl=/,
 		},
+		'MeWe' => {
+				'host'  => 'mewe.com',
+				'path'  => '/share',
+				'query' => qr/\blink=/,
+		},
 		'Naver' => {
 				'host'  => 'share.naver.com',
 				'path'  => '/web/shareView.nhn',
