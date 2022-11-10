@@ -1129,6 +1129,11 @@ sub init_blacklist {
 				'path'  => qr/\.g$/,
 				'query' => '',
 		},
+		'ConstantContact' => {
+				'host'  => 'visitor.constantcontact.com',
+				'path'  => '/manage/optin/ea',
+				'query' => qr/\bv=\b/,
+		},
 		'Facebook 1' => {
 				'host'  => qr/(www\.)?facebook.com/,
 				'path'  => qr/^\/(sharer\/)?sharer?\.php$/,
