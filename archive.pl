@@ -1144,6 +1144,11 @@ sub init_blacklist {
 				'path'  => qr/^\/dialog\/(feed|share)/,
 				'query' => qr/\b(href|link)=/,
 		},
+		'Google Calendar' => {
+				'host'  => 'www.google.com',
+				'path'  => '/calendar/event',
+				'query' => qr/\baction=/,
+		},
 		'Google Plus' => {
 				'host'  => 'plus.google.com',
 				'path'  => '',
