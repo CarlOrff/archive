@@ -1205,7 +1205,7 @@ sub init_blacklist {
 				'query' => qr/.+=.+/,
 		},
 		'Outlook Calendar' => {
-				'host'  => 'outlook.live.com',
+				'host'  => qr/outlook\.(live|office)\.com/,
 				'path'  => qr/^\/owa\/?$/,
 				'query' => qr/\bpath=\/calendar\/action\/compose\b/,
 		},
