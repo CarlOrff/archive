@@ -1217,11 +1217,16 @@ sub init_blacklist {
 		'Pinterest' => {
 				'host'  => qr/^(www\.)?pinterest.com$/,
 				'path'  => qr/^\/pin\/create\/(link|button)\/?$/,
-				'query' => qr/\burl=/,
+				'query' => '',
 		},
 		'Pocket' => {
 				'host'  => 'getpocket.com',
 				'path'  => '/edit',
+				'query' => qr/\burl=/,
+		},
+		'Reddit' => {
+				'host'  => 'reddit.com',
+				'path'  => '/submit',
 				'query' => qr/\burl=/,
 		},
 		'Stack Overflow 1' => {
