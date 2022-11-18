@@ -1314,6 +1314,11 @@ sub init_blacklist {
 				'path'  => '/app/user',
 				'query' => qr/\bop=share\b/,
 		},
+		'Yahoo' => {
+				'host'  => 'add.my.yahoo.com',
+				'path'  => '/content',
+				'query' => qr/\burl=/,
+		},
 		'?' => {
 				'host'  => '',
 				'path'  => qr/\/(account|auth|log[-_]?in|register|sign[-_]?(in|up))(\/|\.\w+)?$/,
