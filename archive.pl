@@ -1239,6 +1239,11 @@ sub init_blacklist {
 				'path'  => '/teams/create/free',
 				'query' => '',
 		},
+		'Stumble Upon' => {
+				'host'  => 'www.stumbleupon.com',
+				'path'  => '/submit',
+				'query' => qr/\burl=/,
+		},
 		'Telegram' => {
 				'host'  => qr/^t(elegram)?\.me$/,
 				'path'  => '/share/url',
