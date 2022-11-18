@@ -1144,6 +1144,11 @@ sub init_blacklist {
 				'path'  => qr/^\/dialog\/(feed|share)/,
 				'query' => qr/\b(href|link)=/,
 		},
+		'Flipboard' => {
+				'host'  => 'share.flipboard.com',
+				'path'  => '/bookmarklet/popout',
+				'query' => qr/\burl=/,
+		},
 		'Google Calendar' => {
 				'host'  => 'www.google.com',
 				'path'  => '/calendar/event',
