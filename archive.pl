@@ -1144,6 +1144,11 @@ sub init_blacklist {
 				'path'  => qr/^\/dialog\/(feed|share)/,
 				'query' => qr/\b(href|link)=/,
 		},
+		'Facebook 3' => {
+				'host'  => qr/(www\.)?facebook.com/,,
+				'path'  => '/plugins/like.php',
+				'query' => qr/\b(href|link)=/,
+		},
 		'Flipboard' => {
 				'host'  => 'share.flipboard.com',
 				'path'  => '/bookmarklet/popout',
@@ -1230,7 +1235,7 @@ sub init_blacklist {
 				'query' => qr/\burl=/,
 		},
 		'Reddit' => {
-				'host'  => 'reddit.com',
+				'host'  => qr/^(www\.)?reddit\.com/,
 				'path'  => '/submit',
 				'query' => qr/\burl=/,
 		},
