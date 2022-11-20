@@ -1125,7 +1125,7 @@ sub init_blacklist {
 				'query' => qr/\blinkurl=\b/,
 		},
 		'Blogger' => {
-				'host'  => 'www.blogger.com',
+				'host'  => qr/^(draft|www)\.blogger\.com$/,
 				'path'  => qr/\.g$/,
 				'query' => '',
 		},
