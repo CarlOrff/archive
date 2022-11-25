@@ -1119,6 +1119,11 @@ sub url_is_blacklisted {
 sub init_blacklist {
 	
 	%blacklist = (
+		'AddThis' => {
+				'host'  => 'www.addthis.com',
+				'path'  => '/bookmark.php',
+				'query' => '',
+		},
 		'Add to any' => {
 				'host'  => 'www.addtoany.com',
 				'path'  => qr/^\/add_to\//,
