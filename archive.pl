@@ -105,8 +105,8 @@ my $author_delimiter = '/';
 my $atomurl = "https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=$botname&ib_medium=atom&ib_source=outfile";
 my $htmlurl = "https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=$botname&ib_medium=html&ib_source=outfile";
 my $scripturl = 'https://bit.ly/3rBZOrV';
-my $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36 Edg/88.0.705.63';
-my $ua_string = "$ua +$scripturl";
+my $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/605.1.15 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/605.1.15';
+my $ua_string = "$ua $scripturl";
 
 my $wayback_url = 'http://web.archive.org/save/';
 
@@ -231,16 +231,16 @@ else { die "Could not open $infile"; }
 ##################################################################################################
 my $lwp;
 if ($opts{r}) {
-	$lwp = LWP::RobotUA->new($ua_string, 'bot@example.com');
+	$lwp = LWP::RobotUA->new($ua, 'bot@example.com');
 	$lwp->delay(0); # minutes (0 because we don't crawl domains recursively)
 	$lwp->ssl_opts(  # we don't verify hostnames of TLS URLs
 		verify_mode   => 'SSL_VERIFY_PEER',
 		verify_hostname => 0, 
 	);
-	$lwp->rules(WWW::RobotRules->new($ua_string)) if $opts{r}; # obey robots.txt
+	$lwp->rules(WWW::RobotRules->new($ua)); # obey robots.txt
 }
 else {
-	$lwp = LWP::UserAgent->new( agent => $ua_string );
+	$lwp = LWP::UserAgent->new( agent => $ua );
 	$lwp->ssl_opts(  # we don't verify hostnames of TLS URLs
 		verify_mode   => 'SSL_VERIFY_PEER',
 		verify_hostname => 0, 

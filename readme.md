@@ -71,7 +71,7 @@ There are several optional switches
 
 ### v2.2
 
-- Blacklist of URLs (mostly social media sharing URLs that only point to a login mask).
+- Blacklist of URLs (mostly social media sharing URLs which only point to a login mask).
 - Fixed image data URLs bug.
 - Removed TLS from Wayback URLs (too many protocol errors).
 - Added `mirror.pl`.
