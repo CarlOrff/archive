@@ -263,8 +263,6 @@ foreach my $url ( @urls ) {
 }
 
 foreach my $url ( @urls ) {
-	
-	say $url;
 
 	# don't fetch empty URLs
 	next if length $url < 1 || exists( $urls_seen{ $url } ); # avoid empty lines or duplicate URLs
@@ -283,6 +281,8 @@ foreach my $url ( @urls ) {
 	# remove hash part:
     $url = $scheme.'://'.$host.$path_query;
 	next if exists( $urls_seen{ $url } ); # avoid duplicate URLs
+	
+	say $url;
     
     # remove high chars in path and query params:
     $path_query = URI::Encode->new({double_encode => 0})->encode($path_query);
