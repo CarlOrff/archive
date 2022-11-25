@@ -1314,6 +1314,11 @@ sub init_blacklist {
 				'path'  => '',
 				'query' => qr/\bshare=(facebook|email|instagram|jetpack-whatsapp|linkedin|pinterest|pocket|reddit|telegram|tumblr|twitter)\b/,
 		},
+		'WordPress 3' => {
+				'host'  => 'widgets.wp.com',
+				'path'  => '/likes/index.html',
+				'query' => qr/\bver=/,
+		},
 		'XING 1' => {
 				'host'  => 'www.xing.com',
 				'path'  => '/spi/shares/new',
