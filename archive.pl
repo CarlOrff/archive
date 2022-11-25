@@ -1331,7 +1331,7 @@ sub init_blacklist {
 		},
 		'?' => {
 				'host'  => '',
-				'path'  => qr/\/(account|auth|log[-_]?in|register|sign[-_]?(in|up))(\/|\.\w+)?$/,
+				'path'  => qr/\/(account|anmelden|auth(enticate)?|log[-_]?in|register|sign[-_]?(in|up))(\/|\.\w+)?$/i,
 				'query' => '',
 		},
 	);
