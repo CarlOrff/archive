@@ -336,8 +336,6 @@ foreach my $url ( @urls ) {
 		
 	}
 	else {
-		$success = $r->is_success;
-		$mime = $r->header('content-type');
 		$content = $r->content;
 	}
 	
