@@ -13,6 +13,7 @@
 #               -d <path>                 FTP path or WordPress blog id on a multisite instance.
 #               -D                        Debug mode - don't save to Internet Archive
 #               -f <filename>             Other input file name than urls.txt
+#               -F                        Download root URLs ´by Firefox (recommended)
 #               -h                        show commands
 #               -i <title>                Feed or HTML title
 #               -k <consumer key>         Twitter consumer key
@@ -35,7 +36,7 @@
 #
 # LICENSE: GNU GENERAL PUBLIC LICENSE v.3
 #
-# PROJECT PAGE: https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/
+# PROJECT PAGE: https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/
 #
 ##################################################################################################
 
@@ -57,6 +58,7 @@ use DateTime::Format::W3CDTF;
 use Feed::Find;
 use FileHandle;
 use FindBin ();
+require Firefox::Marionette;
 use GD;
 use Getopt::Std;
 use HTML::Entities;
@@ -125,7 +127,7 @@ init_blacklist();
 
 # fetch options
 my %opts;
-getopts('ac:d:Df:hi:k:ln:o:p:P:rst:T:u:vwx:y:z:', \%opts);
+getopts('ac:d:Df:Fhi:k:ln:o:p:P:rst:T:u:vwx:y:z:', \%opts);
 
 my @commands = (
 	'-a                        Atom feed instead of HTML output',
@@ -133,6 +135,7 @@ my @commands = (
 	'-d <path>                 FTP path',
 	'-D                        Debug mode - don\'t save to Internet Archive',
 	'-f <filename>             Other input file name than urls.txt',
+	'-F                        Download root URLs ´by Firefox (recommended)',
 	'-h                        show commands',
 	'-i <title>                Feed or HTML title',
 	'-k <consumer key>         Twitter consumer key',
@@ -304,22 +307,54 @@ foreach my $url ( @urls ) {
 	print "\nfetching ", $url, "\n";
 	
 	# fetch URL
-	my $r = $lwp->request(HTTP::Request->new( GET => $url ));
+
+	my $r = $lwp->request(HTTP::Request->new(($opts{F}) ? 'HEAD' : 'GET' => $url ));
+	
+	my $success = $r->is_success;
+	my $mime = $r->header('content-type');
+	my $content;
+	
+	if ($opts{F}) {
+		
+		if (!$success) {
+		
+			$content = Firefox::Marionette->new()->go($url)->html();
+			$mime = 'text/html';
+			$success = !$r->is_success;
+		}
+		elsif ($mime =~ /html$/) {
+			
+			$content = Firefox::Marionette->new()->go($url)->html();
+		}
+		else {
+			
+			$r = $lwp->request(HTTP::Request->new( GET => $url ));
+			$success = $r->is_success;
+			$mime = $r->header('content-type');
+			$content = $r->content;
+		}
+		
+	}
+	else {
+		$success = $r->is_success;
+		$mime = $r->header('content-type');
+		$content = $r->content;
+	}
+	
+	print $content;
     
-    if ($r->is_success) {
+    if ($success) {
 	
 		print "successfull!\n";
 		
-		my($title, $description, $author, $language, $content);
-		
-		$content = $r->content;
+		my($title, $description, $author, $language);
         	
 ##################################################################################################
 # HTML
 ##################################################################################################
 
-		if ($r->header('content-type') =~ /(ht|x)ml/i) {
-		
+		if ($mime =~ /(ht|x)ml/i) {
+
 			$download_method = 1;
 			
 			if ($opts{l}) {
@@ -1047,7 +1082,6 @@ sub get_links {
 	return if $tag ne 'a' && $tag ne 'area' && $tag ne 'frame' && $tag ne 'iframe' && $tag ne 'track' && $tag ne 'source';
 	grep {$raw_urls{$_}++} values %attr;
 }
-
 
 # downloads the available API of URL in arg1
 # returns hashref to decoded JSON or error message
