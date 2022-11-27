@@ -338,8 +338,6 @@ foreach my $url ( @urls ) {
 	else {
 		$content = $r->content;
 	}
-	
-	print $content;
     
     if ($success) {
 	
