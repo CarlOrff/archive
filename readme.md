@@ -2,7 +2,7 @@
 
 *A script for archiving URL sets (HTML, PDF) in the [Internet Archive](https://archive.org).*
 
-© 2015-2020 Ingram Braun [https://ingram-braun.net/](https://ingram-braun.net/#ib_campaign=archive-pl-2.1&ib_medium=repository&ib_source=readme&ib_content=copyright)
+© 2015-2022 Ingram Braun [https://ingram-braun.net/](https://ingram-braun.net/#ib_campaign=archive-pl-2.1&ib_medium=repository&ib_source=readme&ib_content=copyright)
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
@@ -12,11 +12,13 @@ You should have received a copy of the GNU General Public License along with thi
 
 ## Requirements
 
+There is an [image on Docker Hub](https://hub.docker.com/r/archaeopath/archive.pl-docker) now. It is strongly recommended to emply it.
+
 Perl 5.24 (earlier versions not tested but it is likely to work with every build that is capabale of getting the required modules installed). If there are issues with installing the `XMLRPC::lite` module, do it with CPAN's `notest` pragma.
 
 ## Usage
 
-Collect URLs you want to archive in file `urls.txt` separated by one or more line breaks and UTF-8-encoded and call `perl archive.pl`. The script does to things: it fetches the URLs and extracts some metadata (works with HTML and PDF). It submits them to Internet Archive. Then it generates a HTML file with a link list that you may post to your blog or use autmoated submission to WordPress. Alternatively you can get the link list as Atom feed. If login credentials are provided but no FTP host, it is posted to WordPress. The WP URL must point to the `xmlrpc.php`. Additionally you can post the links on Twitter. Regardless of the format you can upload the file on a server via FTP.
+Collect URLs you want to archive in file `urls.txt` separated by one or more line breaks and UTF-8-encoded and call `perl archive.pl`. The script does to things: it fetches the URLs and extracts some metadata (works with HTML and PDF). It submits them to Internet Archive. Then it generates a HTML file with a link list that you may post to your blog or use autmoated submission to WordPress. Alternatively you can get the link list as Atom feed. If login credentials are provided but no FTP host, it is posted to WordPress. The WP URL must point to the `xmlrpc.php`. Additionally you can post the links on Twitter. Regardless of the format you can upload the result file on a server via FTP.
 
 Internet Archive has a submission limit of 15 URLs per minute per IP. Set an appropriate delay (at least five seconds) to meet it. If you want to be faster, set a proxy server which rotates IPs. This is fi. possible with TOR as service (the TOR browser on Windows does not work here!). Set `MaxCircuitDirtiness 10` in the configuration file (`/path/to/torrc`) to rotate IPs every ten seconds.
 
@@ -31,6 +33,8 @@ There are several optional switches
 `- D` Debug mode - don't save to Internet Archive
 
 `-f <filename>` name of input file if other than `urls.txt`
+
+`-F` Download root URLs by Firefox (recommended)
 
 `-h` Show commands
 
@@ -72,6 +76,7 @@ There are several optional switches
 ### v2.2
 
 - Blacklist of URLs (mostly social media sharing URLs which only point to a login mask).
+- Docker image on Docker Hub´.
 - Fixed image data URLs bug.
 - Removed TLS from Wayback URLs (too many protocol errors).
 - Added `mirror.pl`.
@@ -145,8 +150,8 @@ Not published.
 
 ## Project Page
 
-[https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/](https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=archive-pl-2.1&ib_medium=repository&ib_source=readme&ib_content=projectpage)
+[https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/](https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=archive-pl-2.2&ib_medium=repository&ib_source=readme&ib_content=projectpage)
 
 ## Windows Binaries
 
-Binaries Windows 64 bit (XP or higher) can get obtained from the project page [https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/](https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=archive-pl-2.1&ib_medium=repository&ib_source=readme&ib_content=binaries)
+Binaries Windows 64 bit (XP or higher) can get obtained from the project page [https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/](https://ingram-braun.net/public/programming/perl/wayback-url-robot-html/#ib_campaign=archive-pl-2.2&ib_medium=repository&ib_source=readme&ib_content=binaries)

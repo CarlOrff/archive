@@ -13,7 +13,7 @@
 #               -d <path>                 FTP path or WordPress blog id on a multisite instance.
 #               -D                        Debug mode - don't save to Internet Archive
 #               -f <filename>             Other input file name than urls.txt
-#               -F                        Download root URLs ´by Firefox (recommended)
+#               -F                        Download root URLs through Firefox (recommended)
 #               -h                        show commands
 #               -i <title>                Feed or HTML title
 #               -k <consumer key>         Twitter consumer key
@@ -135,7 +135,7 @@ my @commands = (
 	'-d <path>                 FTP path',
 	'-D                        Debug mode - don\'t save to Internet Archive',
 	'-f <filename>             Other input file name than urls.txt',
-	'-F                        Download root URLs ´by Firefox (recommended)',
+	'-F                        Download root URLs through Firefox (recommended)',
 	'-h                        show commands',
 	'-i <title>                Feed or HTML title',
 	'-k <consumer key>         Twitter consumer key',
