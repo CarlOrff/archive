@@ -1180,7 +1180,7 @@ sub init_blacklist {
 				'query' => qr/\burl=/,
 		},
 		'Facebook 1' => {
-				'host'  => qr/(www\.)?facebook.com/,
+				'host'  => qr/(www\.)?facebook.com$/,
 				'path'  => qr/^\/(sharer\/)?sharer?\.php$/,
 				'query' => qr/\bu=/,
 		},
@@ -1190,7 +1190,7 @@ sub init_blacklist {
 				'query' => qr/\b(href|link)=/,
 		},
 		'Facebook 3' => {
-				'host'  => qr/(www\.)?facebook.com/,,
+				'host'  => qr/(www\.)?facebook.com$/,
 				'path'  => '/plugins/like.php',
 				'query' => qr/\b(href|link)=/,
 		},
@@ -1265,7 +1265,7 @@ sub init_blacklist {
 				'query' => qr/.+=.+/,
 		},
 		'Outlook Calendar' => {
-				'host'  => qr/outlook\.(live|office)\.com/,
+				'host'  => qr/outlook\.(live|office)\.com$/,
 				'path'  => qr/^\/owa\/?$/,
 				'query' => qr/\bpath=\/calendar\/action\/compose\b/,
 		},
@@ -1280,7 +1280,7 @@ sub init_blacklist {
 				'query' => qr/\burl=/,
 		},
 		'Reddit' => {
-				'host'  => qr/^(www\.)?reddit\.com/,
+				'host'  => qr/^(www\.)?reddit\.com$/,
 				'path'  => '/submit',
 				'query' => qr/\burl=/,
 		},
@@ -1320,12 +1320,12 @@ sub init_blacklist {
 				'query' => qr/\bu=/,
 		},
 		'Twitter 1' => {
-				'host'  => 'twitter.com',
+				'host'  => qr/^(www\.)?twitter\.com$/,
 				'path'  => '/intent/tweet',
 				'query' => qr/\btext=/,
 		},
 		'Twitter 2' => {
-				'host'  => 'twitter.com',
+				'host'  => qr/^(www\.)?twitter\.com$/,
 				'path'  => '/share',
 				'query' => qr/\b(url|text)=/,
 		},
@@ -1335,7 +1335,7 @@ sub init_blacklist {
 				'query' => qr/\burl=/,
 		},
 		'WhatsApp 1' => {
-				'host'  => qr/^(api|web)\.whatsapp\.com/,
+				'host'  => qr/^(api|web)\.whatsapp\.com$/,
 				'path'  => '/send',
 				'query' => qr/\btext=/,
 		},
