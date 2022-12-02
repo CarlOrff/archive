@@ -1149,10 +1149,15 @@ sub url_is_blacklisted {
 sub init_blacklist {
 	
 	%blacklist = (
-		'AddThis' => {
+		'AddThis 1' => {
 				'host'  => 'www.addthis.com',
 				'path'  => '/bookmark.php',
 				'query' => '',
+		},
+		'AddThis 2' => {
+				'host'  => 'v1.addthis.com',
+				'path'  => '/live/redirect/',
+				'query' => qr/\burl=/,
 		},
 		'Add to any' => {
 				'host'  => 'www.addtoany.com',
@@ -1168,6 +1173,11 @@ sub init_blacklist {
 				'host'  => 'visitor.constantcontact.com',
 				'path'  => '/manage/optin/ea',
 				'query' => qr/\bv=\b/,
+		},
+		'Delicious' => {
+				'host'  => 'delicious.com',
+				'path'  => '/save',
+				'query' => qr/\burl=/,
 		},
 		'Facebook 1' => {
 				'host'  => qr/(www\.)?facebook.com/,
