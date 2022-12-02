@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License along with thi
 
 ## Requirements
 
-There is an [image on Docker Hub](https://hub.docker.com/r/archaeopath/archive.pl-docker) now. It is strongly recommended to emply it.
+There is an [image on Docker Hub](https://hub.docker.com/r/archaeopath/archive.pl-docker) now. It is strongly recommended to prefer it over self-install or Windows binaries.
 
 Perl 5.24 (earlier versions not tested but it is likely to work with every build that is capabale of getting the required modules installed). If there are issues with installing the `XMLRPC::lite` module, do it with CPAN's `notest` pragma.
 
@@ -79,6 +79,7 @@ There are several optional switches
 - Docker image on Docker Hub´.
 - Fixed image data URLs bug.
 - Removed TLS from Wayback URLs (too many protocol errors).
+- Added `-F` option which downloads root URLs through Firefox to circumvent DDoS protection etc.
 - Added `mirror.pl`.
 
 ### v2.1
