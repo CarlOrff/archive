@@ -12,7 +12,9 @@ You should have received a copy of the GNU General Public License along with thi
 
 ## Requirements
 
-There is an [image on Docker Hub](https://hub.docker.com/r/archaeopath/archive.pl-docker) now. It is strongly recommended to prefer it over self-install or Windows binaries.
+There is an [image on Docker Hub](https://hub.docker.com/r/archaeopath/archive.pl-docker) now. It is strongly recommended to prefer it over self-install or Windows binaries:
+
+    $ docker pull archaeopath/archive.pl-docker:latest
 
 Perl 5.24 (earlier versions not tested but it is likely to work with every build that is capabale of getting the required modules installed). If there are issues with installing the `XMLRPC::lite` module, do it with CPAN's `notest` pragma.
 
@@ -30,7 +32,7 @@ There are several optional switches
 
 `-d <path>` FTP path
 
-`- D` Debug mode - don't save to Internet Archive
+`-D` Debug mode - don't save to Internet Archive
 
 `-f <filename>` name of input file if other than `urls.txt`
 
@@ -76,7 +78,7 @@ There are several optional switches
 ### v2.2
 
 - Blacklist of URLs (mostly social media sharing URLs which only point to a login mask).
-- Docker image on Docker Hub´.
+- Docker image on Docker Hub.
 - Fixed image data URLs bug.
 - Removed TLS from Wayback URLs (too many protocol errors).
 - Added `-F` option which downloads root URLs through Firefox to circumvent DDoS protection etc.
