@@ -1259,6 +1259,11 @@ sub init_blacklist {
 				'path'  => '/web/shareView.nhn',
 				'query' => qr/\burl=/,
 		},
+		'Ok.Ru' => {
+				'host'  => qr/(www\.)?o(dno)?k(lassniki)\.ru$/,
+				'path'  => '/dk',
+				'query' => qr/\bst\._surl=/,
+		},
 		'Open Authorization' => {
 				'host'  => '',
 				'path'  => qr/\/oauth2?\/.+/,
