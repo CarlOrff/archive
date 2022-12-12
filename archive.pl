@@ -1174,9 +1174,14 @@ sub init_blacklist {
 				'path'  => '/manage/optin/ea',
 				'query' => qr/\bv=\b/,
 		},
-		'Delicious' => {
+		'Delicious 1' => {
 				'host'  => 'delicious.com',
 				'path'  => '/save',
+				'query' => qr/\burl=/,
+		},
+		'Delicious 2' => {
+				'host'  => 'del.icio.us',
+				'path'  => '/post',
 				'query' => qr/\burl=/,
 		},
 		'Facebook 1' => {
