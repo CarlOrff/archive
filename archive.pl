@@ -1184,6 +1184,11 @@ sub init_blacklist {
 				'path'  => '/post',
 				'query' => qr/\burl=/,
 		},
+		'Digg' => {
+				'host'  => 'www.digg.com',
+				'path'  => '/submit',
+				'query' => qr/\burl=/,
+		},
 		'Facebook 1' => {
 				'host'  => qr/(www\.)?facebook.com$/,
 				'path'  => qr/^\/(sharer\/)?sharer?\.php$/,
