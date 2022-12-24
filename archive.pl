@@ -1185,7 +1185,7 @@ sub init_blacklist {
 				'query' => qr/\burl=/,
 		},
 		'Digg' => {
-				'host'  => 'www.digg.com',
+				'host'  => qr/^(www\.)?digg\.com$/,
 				'path'  => '/submit',
 				'query' => qr/\burl=/,
 		},
@@ -1195,7 +1195,7 @@ sub init_blacklist {
 				'query' => qr/\bu=/,
 		},
 		'Facebook 2' => {
-				'host'  => qr/(www\.)?facebook.com/,,
+				'host'  => qr/(www\.)?facebook.com/,
 				'path'  => qr/^\/dialog\/(feed|share)/,
 				'query' => qr/\b(href|link)=/,
 		},
