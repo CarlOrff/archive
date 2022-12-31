@@ -1291,7 +1291,7 @@ sub init_blacklist {
 		},
 		'Pocket' => {
 				'host'  => 'getpocket.com',
-				'path'  => '/edit',
+				'path'  => qr/^\/(edit|save)$/,
 				'query' => qr/\burl=/,
 		},
 		'Reddit' => {
