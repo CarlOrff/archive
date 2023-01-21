@@ -1331,8 +1331,8 @@ sub init_blacklist {
 		},
 		'Tumblr' => {
 				'host'  => 'www.tumblr.com',
-				'path'  => '/share',
-				'query' => qr/\bu=/,
+				'path'  => qr/^\/share(\/link)?/,
+				'query' => qr/\bu(rl)?=/,
 		},
 		'Twitter 1' => {
 				'host'  => qr/^(www\.)?twitter\.com$/,
