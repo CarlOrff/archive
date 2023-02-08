@@ -318,13 +318,13 @@ foreach my $url ( @urls ) {
 		
 		if (!$success) {
 		
-			$content = Firefox::Marionette->new()->go($url)->html();
+			$content = get_firefox($url);
 			$mime = 'text/html';
 			$success = !$r->is_success;
 		}
 		elsif ($mime =~ /html$/) {
 			
-			$content = Firefox::Marionette->new()->go($url)->html();
+			$content = get_firefox($url);
 		}
 		else {
 			
@@ -1072,6 +1072,26 @@ sub download_wayback
 	} while ( $@ && $try < $max_tries);
 }
 
+# Downloads via Firefox must be protected against timeouts
+#arg 1: URL
+#returns content
+sub get_firefox {
+	
+	my $doc;
+	my $timeout = 8;
+	my $alarm_str = "Firefox timeout\n";
+	eval {
+		local $SIG{ALRM} = sub { die $alarm_str }; # NB: \n required
+		alarm $timeout;
+		$doc = Firefox::Marionette->new()->go($_[0])->html();
+		alarm 0;
+	};
+	
+
+	return $lwp->request(HTTP::Request->new( GET => $_[0] ))->content if $@;
+	return $doc;
+}
+
 # LinkExtor callback
 sub get_links {
 	my($tag, %attr) = @_;
@@ -1174,14 +1194,9 @@ sub init_blacklist {
 				'path'  => '/manage/optin/ea',
 				'query' => qr/\bv=\b/,
 		},
-		'Delicious 1' => {
-				'host'  => 'delicious.com',
-				'path'  => '/save',
-				'query' => qr/\burl=/,
-		},
-		'Delicious 2' => {
-				'host'  => 'del.icio.us',
-				'path'  => '/post',
+		'Delicious' => {
+				'host'  => qr/^del(\.)?icio(\.)?us(\.com)?$/,
+				'path'  => qr/^\/(post|save)$/,
 				'query' => qr/\burl=/,
 		},
 		'Digg' => {
