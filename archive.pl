@@ -1404,6 +1404,11 @@ sub init_blacklist {
 				'path'  => '/content',
 				'query' => qr/\burl=/,
 		},
+		'Yahoo Calendar' => {
+				'host'  => 'calendar.yahoo.com',
+				'path'  => '/',
+				'query' => qr/\bST=/,
+		},
 		'?' => {
 				'host'  => '',
 				'path'  => qr/\/(account|anmelden|auth(enticate)?|log[-_]?in|register|sign[-_]?(in|up))(\/|\.\w+)?$/i,
