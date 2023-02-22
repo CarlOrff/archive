@@ -1301,7 +1301,7 @@ sub init_blacklist {
 		},
 		'Pinterest' => {
 				'host'  => qr/^(www\.)?pinterest.com$/,
-				'path'  => qr/^\/pin\/create\/(link|button)\/?$/,
+				'path'  => qr/^\/pin\/create\/(link|bookmarklet|button)\/?$/,
 				'query' => '',
 		},
 		'Pocket' => {
