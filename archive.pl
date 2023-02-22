@@ -1084,9 +1084,9 @@ sub get_firefox {
 		local $SIG{ALRM} = sub { die $alarm_str }; # NB: \n required
 		alarm $timeout;
 		$doc = Firefox::Marionette->new()->go($_[0])->html();
-		alarm 0;
 	};
-	
+	# This call has to be outside eval(): https://www.perlmonks.org/?node_id=759131
+	alarm 0;
 
 	return $lwp->request(HTTP::Request->new( GET => $_[0] ))->content if $@;
 	return $doc;
