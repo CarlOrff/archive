@@ -1349,10 +1349,11 @@ sub init_blacklist {
 				'path'  => qr/^\/share(\/link)?/,
 				'query' => qr/\bu(rl)?=/,
 		},
+		# https://developer.twitter.com/en/docs/twitter-for-websites/web-intents/overview
 		'Twitter 1' => {
 				'host'  => qr/^(www\.)?twitter\.com$/,
-				'path'  => '/intent/tweet',
-				'query' => qr/\btext=/,
+				'path'  => qr/^\/intent\/(re)?tweet|like|user|follow$/,
+				'query' => '',
 		},
 		'Twitter 2' => {
 				'host'  => qr/^(www\.)?twitter\.com$/,
@@ -1401,7 +1402,7 @@ sub init_blacklist {
 		},
 		'Yahoo' => {
 				'host'  => 'add.my.yahoo.com',
-				'path'  => '/content',
+				'path'  => qr/\/(content|rss)/,
 				'query' => qr/\burl=/,
 		},
 		'Yahoo Calendar' => {
