@@ -1352,7 +1352,7 @@ sub init_blacklist {
 		# https://developer.twitter.com/en/docs/twitter-for-websites/web-intents/overview
 		'Twitter 1' => {
 				'host'  => qr/^(www\.)?twitter\.com$/,
-				'path'  => qr/^\/intent\/(re)?tweet|like|user|follow$/,
+				'path'  => qr/^\/intent\/((re)?tweet|like|user|follow)$/,
 				'query' => '',
 		},
 		'Twitter 2' => {
