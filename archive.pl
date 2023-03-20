@@ -1033,9 +1033,9 @@ sub download_wayback
 			
 			
 			
-			my $sleep_default = 10;
+			my $sleep_default = 12;
 			my $sleep = 0;
-			my $max_runs = 3;
+			my $max_runs = 9;
 			my $run = 0;
 			
 			do {
