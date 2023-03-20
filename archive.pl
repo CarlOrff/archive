@@ -1400,6 +1400,11 @@ sub init_blacklist {
 				'path'  => '/app/user',
 				'query' => qr/\bop=share\b/,
 		},
+		'XING 3' => {
+				'host'  => 'www.xing.com',
+				'path'  => '/social/share/spi',
+				'query' => qr/\burl=/,
+		},
 		'Yahoo' => {
 				'host'  => 'add.my.yahoo.com',
 				'path'  => qr/\/(content|rss)/,
