@@ -1284,6 +1284,11 @@ sub init_blacklist {
 				'path'  => '/web/shareView.nhn',
 				'query' => qr/\burl=/,
 		},
+		'netID' => {
+				'host'  => 'broker.netid.de',
+				'path'  => '/authorize',
+				'query' => qr/\bclient_id=/,
+		},
 		'Ok.Ru' => {
 				'host'  => qr/(www\.)?o(dno)?k(lassniki)\.ru$/,
 				'path'  => '/dk',
@@ -1315,7 +1320,7 @@ sub init_blacklist {
 				'query' => qr/\burl=/,
 		},
 		'Stack Overflow 1' => {
-		'host'  => qr/[^|\.](askubuntu|serverfault|stack(exchange|overflow)|superuser)\.com$/,
+				'host'  => qr/[^|\.](askubuntu|serverfault|stack(exchange|overflow)|superuser)\.com$/,
 				'path'  => qr/^\/users\/(login|signup)$/,
 				'query' => '',
 		},
@@ -1361,7 +1366,7 @@ sub init_blacklist {
 				'query' => qr/\b(url|text)=/,
 		},
 		'VK' => {
-				'host'  => qr/vk(ontakte.ru|\.com)$/,
+				'host'  => qr/vk(ontakte\.ru|\.com)$/,
 				'path'  => '/share.php',
 				'query' => qr/\burl=/,
 		},
