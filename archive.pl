@@ -350,7 +350,7 @@ foreach my $url ( @urls ) {
 ##################################################################################################
 
 		if ($mime =~ /(ht|x)ml/i) {
-
+			
 			$download_method = 1;
 			
 			if ($opts{l}) {
@@ -819,50 +819,48 @@ foreach my $url ( @urls ) {
 ##################################################################################################
 # save in Wayback Machine
 ##################################################################################################
+	say "submit to Internet Archive";
+	
+	my %urls; # here we can save known URL formats in different variants, fi. images in different sizes.
 
-	if ( $opts{D} ) {
+	# Twitter images in different sizes
+	if ( $host eq 'pbs.twimg.com' && $path_query =~ /^(\/media\/[\w-]+)(\.|\?format=)([a-z]{3})/i ) {
+	
+		my @twitter_sizes = qw/large medium small thumb/;
+		grep { $urls{"$scheme$host$1.$3:$_"}++ } @twitter_sizes;
+		grep { $urls{"$scheme$host$1?format=$3&name=$_"}++ } @twitter_sizes;
+		$urls{"$scheme$host$1.$3"}++;
 		
-		say 'DEBUG mode active: not submited to Internet Archive!';
 	}
-	else {
-		say "submit to Internet Archive";
+	else { $urls{$url}++; }
+	
+	foreach ( keys %urls ) {
+	
+		my $available = get_wayback_available( $_ );
 		
-		my %urls; # here we can save known URL formats in different variants, fi. images in different sizes.
-
-		# Twitter images in different sizes
-		if ( $host eq 'pbs.twimg.com' && $path_query =~ /^(\/media\/[\w-]+)(\.|\?format=)([a-z]{3})/i ) {
-		
-			my @twitter_sizes = qw/large medium small thumb/;
-			grep { $urls{"$scheme$host$1.$3:$_"}++ } @twitter_sizes;
-			grep { $urls{"$scheme$host$1?format=$3&name=$_"}++ } @twitter_sizes;
-			$urls{"$scheme$host$1.$3"}++;
-			
+		say "Available in Wayback Machine:";
+		if ( 'HASH' eq Scalar::Util::reftype($available) ) {
+			say "\tURL: " . $$available{url} if exists( $$available{url} );
+			say "\tavailable: " . $$available{archived_snapshots}{closest}{available} if exists( $$available{archived_snapshots}{closest}{available} );
+			say "\tstatus: " . $$available{archived_snapshots}{closest}{status} if exists( $$available{archived_snapshots}{closest}{status} );
+			if (exists( $$available{archived_snapshots}{closest}{timestamp} ) ) {
+				$$available{archived_snapshots}{closest}{timestamp} =~ s/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/$3.$2.$1 $4:$5:$6/;
+				say "\tclosest: " . $$available{archived_snapshots}{closest}{timestamp};
+			}
 		}
-		else { $urls{$url}++; }
-		
-		foreach ( keys %urls ) {
-		
-			my $available = get_wayback_available( $_ );
-			
-			say "Available in Wayback Machine:";
-			if ( 'HASH' eq Scalar::Util::reftype($available) ) {
-				say "\tURL: " . $$available{url} if exists( $$available{url} );
-				say "\tavailable: " . $$available{archived_snapshots}{closest}{available} if exists( $$available{archived_snapshots}{closest}{available} );
-				say "\tstatus: " . $$available{archived_snapshots}{closest}{status} if exists( $$available{archived_snapshots}{closest}{status} );
-				if (exists( $$available{archived_snapshots}{closest}{timestamp} ) ) {
-					$$available{archived_snapshots}{closest}{timestamp} =~ s/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/$3.$2.$1 $4:$5:$6/;
-					say "\tclosest: " . $$available{archived_snapshots}{closest}{timestamp};
-				}
-			}
-			else {
-				say "\tCan't check: $available ";
-			}
-		
+		else {
+			say "\tCan't check: $available ";
+		}
+	
+		if ( $opts{D} ) {
+			say 'DEBUG mode active: not submited to Internet Archive!';
+		}
+		else {
 			download_wayback( $_ );
-		} 
-			
-		$download_method = 0;
-	}
+		}
+	} 
+		
+	$download_method = 0;
 	
 	say "****************************************************************************************\n";
 } # main loop
@@ -1019,7 +1017,8 @@ sub check_scraped {
 }
 
 sub download_wayback
-{	
+{
+	$mech->get( $wayback_url );
 	my $max_tries = 10;
 	my $try = 0;
 	local $@;
@@ -1028,7 +1027,6 @@ sub download_wayback
 		$try++;
 		
 		eval {
-			$mech->get( $wayback_url );
 			#say ' CONTENT: ' . $mech->text();
 			
 			
@@ -1067,7 +1065,7 @@ sub download_wayback
 			} while ( !$mech->success() && $run <= $max_runs );
 		};
 
-		say 'run #' . $try . ' ' . $@ if $@;
+		print ' ', $@ if $@;
 		
 	} while ( $@ && $try < $max_tries);
 }
