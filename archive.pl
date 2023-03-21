@@ -1020,7 +1020,7 @@ sub check_scraped {
 
 sub download_wayback
 {	
-	my $max_tries = 5;
+	my $max_tries = 10;
 	my $try = 0;
 	local $@;
 	
@@ -1035,7 +1035,7 @@ sub download_wayback
 			
 			my $sleep_default = 12;
 			my $sleep = 0;
-			my $max_runs = 9;
+			my $max_runs = 3;
 			my $run = 0;
 			
 			do {
@@ -1067,7 +1067,7 @@ sub download_wayback
 			} while ( !$mech->success() && $run <= $max_runs );
 		};
 
-		say $@ if $@;
+		say 'run #' . $try . ' ' . $@ if $@;
 		
 	} while ( $@ && $try < $max_tries);
 }
