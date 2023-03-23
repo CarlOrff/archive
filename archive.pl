@@ -168,9 +168,20 @@ elsif ($opts{v}) {
 }
 
 # init WWW::Mechanize
-my $mech = WWW::Mechanize->new( agent => $ua, autocheck => 1 );
+my $mech = WWW::Mechanize->new( 
+	agent => $ua,
+	autocheck => 1,
+	cookie_jar => undef,
+	protocols_allowed => [ 'http', 'https' ],
+	strict_forms => 1,
+);
 # set proxy
 $mech->proxy( [ qw( http https ) ] => $opts{P} ) if ( $opts{P} && length $opts{P} > 0 );
+do {
+	say 'Trying to get Wayback save form';
+	eval { $mech->get( $wayback_url ); }
+} while $@;
+my $mech_clone = $mech->clone( );
 
 # if credentials available the -o switch indicates FTP, WP otherwise,
 my $wp;
@@ -1018,7 +1029,7 @@ sub check_scraped {
 
 sub download_wayback
 {
-	$mech->get( $wayback_url );
+	$mech = $mech_clone->clone( );
 	my $max_tries = 10;
 	my $try = 0;
 	local $@;
