@@ -287,6 +287,7 @@ foreach my $url ( @urls ) {
 
 foreach my $url ( @urls ) {
 
+	
 	# don't fetch empty URLs
 	next if length $url < 1 || exists( $urls_seen{ $url } ); # avoid empty lines or duplicate URLs
 	
@@ -1038,6 +1039,8 @@ sub check_scraped {
 
 sub download_wayback
 {
+	my $exec_time = time;
+		
 	if ( $opts{C} ) { $mech = $mech_clone->clone( ); }
 	else { $mech->get( $wayback_url ); }
 	
@@ -1097,6 +1100,9 @@ sub download_wayback
 		print ' ', $@ if $@;
 		
 	} while ( $@ && $try < $max_tries);
+	
+	$exec_time = time - $exec_time;
+	say "Saving in IA took $exec_time seconds";
 }
 
 # Downloads via Firefox must be protected against timeouts
