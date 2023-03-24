@@ -10,6 +10,7 @@
 #    Optional arguments:
 #               -a                        Atom feed instead of HTML output
 #               -c <creator>              Name of the feed author (feed only)
+#               -C                        Clone Wayback save URL (experimental) 
 #               -d <path>                 FTP path or WordPress blog id on a multisite instance.
 #               -D                        Debug mode - don't save to Internet Archive
 #               -f <filename>             Other input file name than urls.txt
@@ -24,11 +25,13 @@
 #               -P <proxy>                A proxy, fi. http://localhost:9050 for TOR service
 #               -r                        Obey robots.txt
 #               -s                        Save feed in Wayback machine (feed only)
+#               -$                        Store Wayback form response in file (for debugging) 
 #               -t <access token>         Twitter access token
-#               -T <int>                  delay per URL in seconds to respect IA's request limit
+#               -T <float>                Seconds delay per URL in seconds to respect IA's request limit
 #               -u <URL>                  Feed or WordPress XMLRPC URL
 #               -v                        Version info
-#               -w                        *deprecated* 
+#               -w                        *deprecated*
+#               -W <float>                Seconds to wait after Wayback error
 #               -x <secret consumer key>  Twitter secret consumer key
 #               -y <secret access token>  Twitter secret access token
 #               -z <time zone>            Time zone (WordPress only)
@@ -107,7 +110,7 @@ my $author_delimiter = '/';
 my $atomurl = "https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=$botname&ib_medium=atom&ib_source=outfile";
 my $htmlurl = "https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=$botname&ib_medium=html&ib_source=outfile";
 my $scripturl = 'https://bit.ly/3rBZOrV';
-my $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/605.1.15 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/605.1.15';
+my $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0';
 my $ua_string = "$ua $scripturl";
 
 my $wayback_url = 'http://web.archive.org/save/';
@@ -127,11 +130,12 @@ init_blacklist();
 
 # fetch options
 my %opts;
-getopts('ac:d:Df:Fhi:k:ln:o:p:P:rst:T:u:vwx:y:z:', \%opts);
+getopts('ac:Cd:Df:Fhi:k:ln:o:p:P:rsSt:T:u:vwW:x:y:z:', \%opts);
 
 my @commands = (
 	'-a                        Atom feed instead of HTML output',
 	'-c <creator>              Name of the feed author (feed only)',
+	'-C                        Clone Wayback save URL (experimental)',
 	'-d <path>                 FTP path',
 	'-D                        Debug mode - don\'t save to Internet Archive',
 	'-f <filename>             Other input file name than urls.txt',
@@ -147,10 +151,12 @@ my @commands = (
     '-r                        Obey robots.txt',
 	'-s                        Save feed in Wayback machine',
 	'-t <access token>         Twitter access token',
-	"-T <seconds>              delay per URL in seconds to respect IA's request limit",
+	'-$                        Store Wayback form response in file (for debugging)',
+	"-T <float>                Seconds delay per URL in seconds to respect IA's request limit",
 	'-u <URL>                  Feed or WordPress (xmlrpc.php) URL',
 	'-v                        Version info',
 	'-w                        *deprecated*',
+	'-W <float>                Seconds to wait after Wayback error',
 	'-x <secret consumer key>  Twitter secret consumer key',
 	'-y <secret access token>  Twitter secret access token',
 	'-z <time zone>            Time zone (WordPress only)',
@@ -171,18 +177,21 @@ elsif ($opts{v}) {
 my $mech = WWW::Mechanize->new( 
 	agent => $ua,
 	autocheck => 1,
-	cookie_jar => undef,
-	protocols_allowed => [ 'http', 'https' ],
-	strict_forms => 1,
+	#cookie_jar => undef,
+	#noproxy => 0,
+	#protocols_allowed => [ 'http', 'https', 'socks', 'socks4' ],
+	#strict_forms => 1,
 );
-# set proxy
 $mech->proxy( [ qw( http https ) ] => $opts{P} ) if ( $opts{P} && length $opts{P} > 0 );
-do {
-	say 'Trying to get Wayback save form';
-	eval { $mech->get( $wayback_url ); }
-} while $@;
-my $mech_clone = $mech->clone( );
-
+my $mech_clone;
+# EXPERIMENTAL: load Wayback URL only once:
+if ( $opts{C} ) {
+	
+	do {
+		$mech->get( $wayback_url );
+		$mech_clone = $mech->clone( );
+	} unless ( $mech->success( ) ); 
+}
 # if credentials available the -o switch indicates FTP, WP otherwise,
 my $wp;
 if ( $opts{o} && length $opts{f} > 0 ) { $wp = 0; }
@@ -1029,7 +1038,9 @@ sub check_scraped {
 
 sub download_wayback
 {
-	$mech = $mech_clone->clone( );
+	if ( $opts{C} ) { $mech = $mech_clone->clone( ); }
+	else { $mech->get( $wayback_url ); }
+	
 	my $max_tries = 10;
 	my $try = 0;
 	local $@;
@@ -1042,7 +1053,8 @@ sub download_wayback
 			
 			
 			
-			my $sleep_default = 12;
+			my $sleep_default = 20;
+			$sleep_default = $opts{W} if exists( $opts{T} );
 			my $sleep = 0;
 			my $max_runs = 3;
 			my $run = 0;
@@ -1050,7 +1062,7 @@ sub download_wayback
 			do {
 			
 				$run++;
-				$sleep = $opts{T} if exists( $opts{T} );
+				$sleep = $opts{T} if exists( $opts{T} ) && ( $count > 1 && scalar @urls > 1 );
 				$sleep = $sleep_default if ( $run > 1 || $try > 1 ) && $sleep < $sleep_default;
 				say "Sleep $sleep seconds in order not to exceed request limit.";
 				select(undef, undef, undef, $sleep); # sleep() eats integers only
@@ -1072,8 +1084,14 @@ sub download_wayback
 				#print ' CONTENT: ' . $mech->text();
 				#print ' TEXT: ' .  $mech->content(format=>'text');
 				say '';
-			
-			} while ( !$mech->success() && $run <= $max_runs );
+				# content to file (think of Docker access!)
+				if ( $opts{S} ) {
+					my $url_in_filename = $_[0];
+					$url_in_filename =~ s/^https?:\/{2}//g;
+					$url_in_filename =~ s/\W+/_/g;
+					$mech->save_content( $url_in_filename.'_'.$try.'_'.$run.'.html', binary => 1 );
+				}		
+			} while ( !$mech->success( ) && $run <= $max_runs );
 		};
 
 		print ' ', $@ if $@;
