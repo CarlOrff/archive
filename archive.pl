@@ -1321,9 +1321,9 @@ sub init_blacklist {
 				'query' => qr/\bclient_id=/,
 		},
 		'Ok.Ru' => {
-				'host'  => qr/(www\.)?o(dno)?k(lassniki)\.ru$/,
+				'host'  => qr/^((connect|www)\.)?o(dno)?k(lassniki)?\.ru$/,
 				'path'  => '/dk',
-				'query' => qr/\bst\._surl=/,
+				'query' => qr/\bst\.cmd=/,
 		},
 		'Open Authorization' => {
 				'host'  => '',
@@ -1451,9 +1451,14 @@ sub init_blacklist {
 				'path'  => '/',
 				'query' => qr/\bST=/,
 		},
+		'Yandex' => {
+				'host'  => qr/^(oauth|passport)\.yandex\.ru$/,
+				'path'  => qr/^\/auth(orize)?$/,
+				'query' => qr/\bclient_id=/,
+		},
 		'?' => {
 				'host'  => '',
-				'path'  => qr/\/(account|anmelden|auth(enticate)?|log[-_]?in|register|sign[-_]?(in|up))(\/|\.\w+)?$/i,
+				'path'  => qr/\/(account|anmelden|auth(enticate|orize)?|log[-_]?in|register|sign[-_]?(in|up))(\/|\.\w+)?$/i,
 				'query' => '',
 		},
 	);
