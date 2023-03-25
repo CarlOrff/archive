@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-#-T;
+-wT;
 
 #####a#############################################################################################
 # PURPOSE: extracts metada from HTML and PDF URLs, stores them in the Internet Archive
@@ -1040,21 +1040,19 @@ sub check_scraped {
 sub download_wayback
 {
 	my $exec_time = time;
-		
-	if ( $opts{C} ) { $mech = $mech_clone->clone( ); }
-	else { $mech->get( $wayback_url ); }
 	
 	my $max_tries = 10;
 	my $try = 0;
 	local $@;
 	
-	do {		
+	do {
 		$try++;
 		
 		eval {
+			
+			if ( $opts{C} ) { $mech = $mech_clone->clone( ); }
+			else { $mech->get( $wayback_url ); }
 			#say ' CONTENT: ' . $mech->text();
-			
-			
 			
 			my $sleep_default = 20;
 			$sleep_default = $opts{W} if exists( $opts{T} );
