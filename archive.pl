@@ -1320,10 +1320,15 @@ sub init_blacklist {
 				'path'  => '/authorize',
 				'query' => qr/\bclient_id=/,
 		},
-		'Ok.Ru' => {
-				'host'  => qr/^((connect|www)\.)?o(dno)?k(lassniki)?\.ru$/,
-				'path'  => '/dk',
+		'Ok.Ru 1' => {
+				'host'  => qr/^((m|connect|www)\.)?o(dno)?k(lassniki)?\.ru$/,
+				'path'  => qr/^\/dk(\;jsessionid=[\w\.]+)?$/,
 				'query' => qr/\bst\.cmd=/,
+		},
+		'Ok.Ru 2' => {
+				'host'  => qr/^((m|connect|www)\.)?o(dno)?k(lassniki)?\.ru$/,
+				'path'  => qr/\/st\.cmd\//,
+				'query' => '',
 		},
 		'Open Authorization' => {
 				'host'  => '',
