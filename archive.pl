@@ -1401,6 +1401,11 @@ sub init_blacklist {
 				'path'  => '/share',
 				'query' => qr/\b(url|text)=/,
 		},
+		'Twitter 3' => {
+				'host'  => qr/^(www\.)?twitter\.com$/,
+				'path'  => '/home',
+				'query' => '',
+		},
 		'VK' => {
 				'host'  => qr/vk(ontakte\.ru|\.com)$/,
 				'path'  => '/share.php',
