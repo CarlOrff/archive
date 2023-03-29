@@ -11,7 +11,7 @@ use LWP::RobotUA;
 use WWW::RobotRules;
 use URI;
 
-my $start_url = qw{ https://www.actors.company.at/ };
+my $start_url = qw{ https://www.agentur-scenario.de/schauspiel-uebersicht/ };
 my $pattern = '';
 my $host = URI->new(URI->new($start_url)->canonical)->host;
 
@@ -32,6 +32,7 @@ do {
 	
 	foreach my $url (keys %urls) {
 		
+		$url =~ s/\#.*//; # remove hash part
 		next if exists $url_seen{$url};
 		$url_seen{$url}++;
 		next if index(lc $url,'http') != 0;

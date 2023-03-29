@@ -1432,19 +1432,24 @@ sub init_blacklist {
 				'query' => qr/\bver=/,
 		},
 		'XING 1' => {
-				'host'  => 'www.xing.com',
+				'host'  => qr/^(www\.)?xing.com$/,
 				'path'  => '/spi/shares/new',
 				'query' => qr/\burl=/,
 		},
 		'XING 2' => {
-				'host'  => 'www.xing.com',
+				'host'  => qr/^(www\.)?xing.com$/,
 				'path'  => '/app/user',
 				'query' => qr/\bop=share\b/,
 		},
 		'XING 3' => {
-				'host'  => 'www.xing.com',
+				'host'  => qr/^(www\.)?xing.com$/,
 				'path'  => '/social/share/spi',
 				'query' => qr/\burl=/,
+		},
+		'XING 4' => {
+				'host'  => qr/^(www\.)?xing.com$/,
+				'path'  => '/social_plugins/share',
+				'query' => '',
 		},
 		'Yahoo' => {
 				'host'  => 'add.my.yahoo.com',
