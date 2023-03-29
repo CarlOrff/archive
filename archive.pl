@@ -1277,7 +1277,7 @@ sub init_blacklist {
 		},
 		'Instagram' => {
 				'host'  => 'www.instagram.com',
-				'path'  => qr/^\/p\//,
+				'path'  => qr/^\/(p|invites\/contact)\//,
 				'query' => '',
 		},
 		'Jimdo 1' => {
