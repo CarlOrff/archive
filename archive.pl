@@ -1407,7 +1407,7 @@ sub init_blacklist {
 				'query' => '',
 		},
 		'VK' => {
-				'host'  => qr/vk(ontakte\.ru|\.com)$/,
+				'host'  => qr/vk(ontakte)?\.(ru|com)$/,
 				'path'  => '/share.php',
 				'query' => qr/\burl=/,
 		},
