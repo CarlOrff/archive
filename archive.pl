@@ -51,7 +51,8 @@ my $start = time;
 
 #use diagnostics;
 #use warnings;
-require Data::Dumper;
+#use LWP::ConsoleLogger::Everywhere;
+#require Data::Dumper;
 use feature 'say';
 use utf8;
 
@@ -179,7 +180,7 @@ my $mech = WWW::Mechanize->new(
 	autocheck => 1,
 	#cookie_jar => undef,
 	#noproxy => 0,
-	#protocols_allowed => [ 'http', 'https', 'socks', 'socks4' ],
+	protocols_allowed => [ 'http', 'https' ],
 	#strict_forms => 1,
 );
 $mech->proxy( [ qw( http https ) ] => $opts{P} ) if ( $opts{P} && length $opts{P} > 0 );
@@ -1385,10 +1386,15 @@ sub init_blacklist {
 				'path'  => '',
 				'query' => '',
 		},
-		'Tumblr' => {
-				'host'  => 'www.tumblr.com',
+		'Tumblr 1' => {
+				'host'  => qr/^(www\.)?tumblr\.com$/,
 				'path'  => qr/^\/share(\/link)?/,
 				'query' => qr/\bu(rl)?=/,
+		},
+		'Tumblr 2' => {
+				'host'  => qr/^(www\.)?tumblr\.com$/,
+				'path'  => '/widgets/share/tool',
+				'query' => qr/\bcanonicalUrl=/,
 		},
 		# https://developer.twitter.com/en/docs/twitter-for-websites/web-intents/overview
 		'Twitter 1' => {
