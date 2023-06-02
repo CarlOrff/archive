@@ -1459,8 +1459,8 @@ sub init_blacklist {
 		},
 		'XING 4' => {
 				'host'  => qr/^(www\.)?xing.com$/,
-				'path'  => '/social_plugins/share',
-				'query' => '',
+				'path'  => qr/^\/social_plugins\/share(\/new)?\/?/,
+				'query' => qr/\burl=/,
 		},
 		'Yahoo' => {
 				'host'  => 'add.my.yahoo.com',
