@@ -42,7 +42,7 @@ There are several optional switches
 
 `-i <title>` Feed or HTML title
 
-`-k <consumer key>` Twitter consumer key
+`-k <consumer key>` *deprecated*
 
 `-l` save linked documents
 
@@ -58,7 +58,7 @@ There are several optional switches
 
 `-s` save feed in Wayback machine
 
-`-t <access token>` Twitter access token
+`-t <access token>` *deprecated*
 
 `-T <seconds>` delay per URL in seconds to respect IA's request limit
 
@@ -66,14 +66,19 @@ There are several optional switches
 
 `-w` *deprecated*
 
-`-x <secret consumer key>` Twitter secret consumer key
+`-x <secret consumer key>` *deprecated*
 
-`-y <secret access token>` Twitter secret access token
+`-y <secret access token>` *deprecated*
 
 `-z <time zone>` Time zone (WordPress only)
 
 ## Changelog
 
+### v2.3
+
+- Removed the ability to post URLs on Twitter due to Twitter API changes.
+- Removed the ability to store Twitter images in various sizes because Twitter has abandoned the corresponding markup since long.
+- Blacklist extended.
 
 ### v2.2
 

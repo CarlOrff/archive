@@ -101,7 +101,7 @@ if ( scalar @ARGV == 0 ) {
 ##################################################################################################
 
 
-my $VERSION = "2.2";
+my $VERSION = "2.3";
 my $botname = "archive.pl-$VERSION";
 my @urls;
 my $author_delimiter = '/';
@@ -131,6 +131,9 @@ init_blacklist();
 # fetch options
 my %opts;
 getopts('ac:Cd:Df:Fhi:k:ln:o:p:P:rsSt:T:u:vwW:x:y:z:', \%opts);
+foreach my $opt ('k','t','w','x','y') {
+	say "Option -$opt is deprecated and will not take effect." if $opts{$opt};
+}
 
 my @commands = (
 	'-a                        Atom feed instead of HTML output',
@@ -1431,7 +1434,6 @@ sub init_blacklist {
 		
 	#say Dumper(%blacklist);
 }
-
 
 # like PHP
 sub trim {

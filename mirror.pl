@@ -11,7 +11,7 @@ use LWP::RobotUA;
 use WWW::RobotRules;
 use URI;
 
-my $start_url = qw{ https://birnbaum-frame.de/management/actresses/sandra-borgmann/ };
+my $start_url = qw{ https://metacpan.org/ };
 my $pattern = '';
 my $host = URI->new(URI->new($start_url)->canonical)->host;
 
