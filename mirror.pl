@@ -11,7 +11,7 @@ use LWP::RobotUA;
 use WWW::RobotRules;
 use URI;
 
-my $start_url = qw{ https://metacpan.org/ };
+my $start_url = qw{ https://die-agenten.de/profile/melika-foroutan/ };
 my $pattern = '';
 my $host = URI->new(URI->new($start_url)->canonical)->host;
 

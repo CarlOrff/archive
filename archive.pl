@@ -101,7 +101,7 @@ if ( scalar @ARGV == 0 ) {
 ##################################################################################################
 
 
-my $VERSION = "2.3";
+my $VERSION = "2.4";
 my $botname = "archive.pl-$VERSION";
 my @urls;
 my $author_delimiter = '/';
@@ -109,9 +109,8 @@ my $author_delimiter = '/';
 # user agent string
 my $atomurl = "https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=$botname&ib_medium=atom&ib_source=outfile";
 my $htmlurl = "https://ingram-braun.net/erga/archive-pl-a-perl-script-for-archiving-url-sets-in-the-internet-archive/#ib_campaign=$botname&ib_medium=html&ib_source=outfile";
-my $scripturl = 'https://bit.ly/3rBZOrV';
-my $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0';
-my $ua_string = "$ua $scripturl";
+
+my $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36';
 
 my $wayback_url = 'http://web.archive.org/save/';
 
@@ -1204,6 +1203,11 @@ sub init_blacklist {
 				'path'  => '/bookmarklet/popout',
 				'query' => qr/\burl=/,
 		},
+		'Gab' => {
+			'host'  => qr/^gab\.(ai|com)$/,
+			'path'  => '/compose',
+			'query' => qr/\burl=/,,
+		},
 		'Google Calendar' => {
 				'host'  => 'www.google.com',
 				'path'  => '/calendar/event',
@@ -1259,6 +1263,11 @@ sub init_blacklist {
 				'path'  => '/share',
 				'query' => qr/\blink=/,
 		},
+		'Mix' => {
+				'host'  => 'mix.com',
+				'path'  => '/mixit',
+				'query' => qr/\burl=/,
+		},
 		'Naver' => {
 				'host'  => 'share.naver.com',
 				'path'  => '/web/shareView.nhn',
@@ -1278,6 +1287,11 @@ sub init_blacklist {
 				'host'  => qr/^((m|connect|www)\.)?o(dno)?k(lassniki)?\.ru$/,
 				'path'  => qr/\/st\.cmd\//,
 				'query' => '',
+		},
+		'Ok.Ru 3' => {
+				'host'  => qr/^((m|connect|www)\.)?o(dno)?k(lassniki)?\.ru$/,
+				'path'  => '/offer',
+				'query' => qr/\burl=/,
 		},
 		'Open Authorization' => {
 				'host'  => '',
