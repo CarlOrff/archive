@@ -1303,6 +1303,11 @@ sub init_blacklist {
 				'path'  => qr/^\/owa\/?$/,
 				'query' => qr/\bpath=\/calendar\/action\/compose\b/,
 		},
+		'Parler' => {
+				'host'  => 'parler.com',
+				'path'  => '/new-post',
+				'query' => qr/\bmessage=/,
+		},
 		'Pinterest' => {
 				'host'  => qr/^(www\.)?pinterest.com$/,
 				'path'  => qr/^\/pin\/create\/(link|bookmarklet|button)\/?$/,
