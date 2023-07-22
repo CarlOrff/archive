@@ -1258,6 +1258,11 @@ sub init_blacklist {
 				'path'  => '/sharing/share-offsite/',
 				'query' => qr/\burl=/,
 		},
+		'Mendeley' => {
+				'host'  => 'www.mendeley.com',
+				'path'  => '/import/',
+				'query' => qr/\burl=/,
+		},
 		'MeWe' => {
 				'host'  => 'mewe.com',
 				'path'  => '/share',
