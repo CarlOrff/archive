@@ -1183,6 +1183,11 @@ sub init_blacklist {
 				'path'  => '/submit',
 				'query' => qr/\burl=/,
 		},
+		'El País' => {
+				'host'  => 'plus.elpais.com',
+				'path'  => qr/^\/newsletters\//,
+				'query' => qr/\bprm=/,
+		},
 		'Facebook 1' => {
 				'host'  => qr/(www\.)?facebook.com$/,
 				'path'  => qr/^\/(sharer\/)?sharer?\.php$/,
@@ -1227,6 +1232,11 @@ sub init_blacklist {
 				'host'  => 'www.googletagmanager.com',
 				'path'  => '/ns.html',
 				'query' => qr/\bid=/,
+		},
+		'Heise' => {
+				'host'  => 'www.heise.de',
+				'path'  => qr/^\/sso\//,
+				'query' => qr/\bforward=/,
 		},
 		'Instagram' => {
 				'host'  => 'www.instagram.com',
