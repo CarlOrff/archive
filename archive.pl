@@ -1380,19 +1380,24 @@ sub init_blacklist {
 		},
 		# https://developer.twitter.com/en/docs/twitter-for-websites/web-intents/overview
 		'Twitter 1' => {
-				'host'  => qr/^(www\.)?twitter\.com$/,
+				'host'  => qr/^(www\.)?(twitter|x)\.com$/,
 				'path'  => qr/^\/intent\/((re)?tweet|like|user|follow)\/?$/,
 				'query' => '',
 		},
 		'Twitter 2' => {
-				'host'  => qr/^(www\.)?twitter\.com$/,
+				'host'  => qr/^(www\.)?(twitter|x)\.com$/,
 				'path'  => '/share',
 				'query' => qr/\b(url|text)=/,
 		},
 		'Twitter 3' => {
-				'host'  => qr/^(www\.)?twitter\.com$/,
+				'host'  => qr/^(www\.)?(twitter|x)\.com$/,
 				'path'  => '/home',
 				'query' => '',
+		},
+		'Twitter 4' => {
+				'host'  => qr/^(www\.)?(twitter|x)\.com$/,
+				'path'  => qr/^\/\w+(\/status\/.+)?$/,
+				'query' => qr/^$/,
 		},
 		'VK' => {
 				'host'  => qr/vk(ontakte)?\.(ru|com)$/,
