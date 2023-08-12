@@ -1259,14 +1259,19 @@ sub init_blacklist {
 				'query' => '',
 		},
 		'Linked In 1' => {
-				'host'  => qr/^(www\.)?linkedin\.com/,
+				'host'  => qr/^(www\.)?linkedin\.com$/,
 				'path'  => '/shareArticle',
 				'query' => qr/\burl=/,
 		},
 		'Linked In 2' => {
-				'host'  => qr/^(www\.)?linkedin\.com/,
+				'host'  => qr/^(www\.)?linkedin\.social$/,
 				'path'  => '/sharing/share-offsite/',
 				'query' => qr/\burl=/,
+		},
+		'Mastodon' => {
+				'host'  => qr/^[\w-\.]+\.social$/,
+				'path'  => '/share',
+				'query' => qr/\btext=/,
 		},
 		'Mendeley' => {
 				'host'  => 'www.mendeley.com',
