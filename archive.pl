@@ -1268,8 +1268,13 @@ sub init_blacklist {
 				'path'  => '/sharing/share-offsite/',
 				'query' => qr/(\A|[;&])url=/,
 		},
-		'Mastodon' => {
+		'Mastodon 1' => {
 				'host'  => qr/^[\w-\.]+\.social$/,
+				'path'  => '/share',
+				'query' => qr/(\A|[;&])text=/,
+		},
+		'Mastodon 2' => {
+				'host'  => qr/^m(astodo|std)n\..+/,
 				'path'  => '/share',
 				'query' => qr/(\A|[;&])text=/,
 		},
