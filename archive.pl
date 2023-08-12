@@ -1156,12 +1156,12 @@ sub init_blacklist {
 		'AddThis 2' => {
 				'host'  => 'v1.addthis.com',
 				'path'  => '/live/redirect/',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Add to any' => {
 				'host'  => 'www.addtoany.com',
 				'path'  => qr/^\/add_to\//,
-				'query' => qr/\blinkurl=\b/,
+				'query' => qr/(\A|[;&])linkurl=\b/,
 		},
 		'Blogger' => {
 				'host'  => qr/^(draft|www)\.blogger\.com$/,
@@ -1171,52 +1171,52 @@ sub init_blacklist {
 		'ConstantContact' => {
 				'host'  => 'visitor.constantcontact.com',
 				'path'  => '/manage/optin/ea',
-				'query' => qr/\bv=\b/,
+				'query' => qr/(\A|[;&])v=\b/,
 		},
 		'Delicious' => {
 				'host'  => qr/^del(\.)?icio(\.)?us(\.com)?$/,
 				'path'  => qr/^\/(post|save)$/,
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Digg' => {
 				'host'  => qr/^(www\.)?digg\.com$/,
 				'path'  => '/submit',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'El País' => {
 				'host'  => 'plus.elpais.com',
 				'path'  => qr/^\/newsletters\//,
-				'query' => qr/\bprm=/,
+				'query' => qr/(\A|[;&])prm=/,
 		},
 		'Facebook 1' => {
 				'host'  => qr/(www\.)?facebook.com$/,
 				'path'  => qr/^\/(sharer\/)?sharer?\.php$/,
-				'query' => qr/\bu=/,
+				'query' => qr/(\A|[;&])u=/,
 		},
 		'Facebook 2' => {
 				'host'  => qr/(www\.)?facebook.com/,
 				'path'  => qr/^\/dialog\/(feed|share)/,
-				'query' => qr/\b(href|link)=/,
+				'query' => qr/(\A|[;&])(href|link)=/,
 		},
 		'Facebook 3' => {
 				'host'  => qr/(www\.)?facebook.com$/,
 				'path'  => '/plugins/like.php',
-				'query' => qr/\b(href|link)=/,
+				'query' => qr/(\A|[;&])(href|link)=/,
 		},
 		'Flipboard' => {
 				'host'  => 'share.flipboard.com',
 				'path'  => '/bookmarklet/popout',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Gab' => {
 			'host'  => qr/^gab\.(ai|com)$/,
 			'path'  => '/compose',
-			'query' => qr/\burl=/,,
+			'query' => qr/(\A|[;&])url=/,,
 		},
 		'Google Calendar' => {
 				'host'  => 'www.google.com',
 				'path'  => '/calendar/event',
-				'query' => qr/\baction=/,
+				'query' => qr/(\A|[;&])action=/,
 		},
 		'Google Plus' => {
 				'host'  => 'plus.google.com',
@@ -1231,12 +1231,12 @@ sub init_blacklist {
 		'Google Tag Manager' => {
 				'host'  => 'www.googletagmanager.com',
 				'path'  => '/ns.html',
-				'query' => qr/\bid=/,
+				'query' => qr/(\A|[;&])id=/,
 		},
 		'Heise' => {
 				'host'  => 'www.heise.de',
 				'path'  => qr/^\/sso\//,
-				'query' => qr/\bforward=/,
+				'query' => qr/(\A|[;&])forward=/,
 		},
 		'Instagram' => {
 				'host'  => 'www.instagram.com',
@@ -1261,47 +1261,47 @@ sub init_blacklist {
 		'Linked In 1' => {
 				'host'  => qr/^(www\.)?linkedin\.com$/,
 				'path'  => '/shareArticle',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Linked In 2' => {
-				'host'  => qr/^(www\.)?linkedin\.social$/,
+				'host'  => qr/^(www\.)?linkedin\.com$/,
 				'path'  => '/sharing/share-offsite/',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Mastodon' => {
 				'host'  => qr/^[\w-\.]+\.social$/,
 				'path'  => '/share',
-				'query' => qr/\btext=/,
+				'query' => qr/(\A|[;&])text=/,
 		},
 		'Mendeley' => {
 				'host'  => 'www.mendeley.com',
 				'path'  => '/import/',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'MeWe' => {
 				'host'  => 'mewe.com',
 				'path'  => '/share',
-				'query' => qr/\blink=/,
+				'query' => qr/(\A|[;&])link=/,
 		},
 		'Mix' => {
 				'host'  => 'mix.com',
 				'path'  => '/mixit',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Naver' => {
 				'host'  => 'share.naver.com',
 				'path'  => '/web/shareView.nhn',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'netID' => {
 				'host'  => 'broker.netid.de',
 				'path'  => '/authorize',
-				'query' => qr/\bclient_id=/,
+				'query' => qr/(\A|[;&])client_id=/,
 		},
 		'Ok.Ru 1' => {
 				'host'  => qr/^((m|connect|www)\.)?o(dno)?k(lassniki)?\.ru$/,
 				'path'  => qr/^\/dk(\;jsessionid=[\w\.]+)?$/,
-				'query' => qr/\bst\.cmd=/,
+				'query' => qr/(\A|[;&])st\.cmd=/,
 		},
 		'Ok.Ru 2' => {
 				'host'  => qr/^((m|connect|www)\.)?o(dno)?k(lassniki)?\.ru$/,
@@ -1311,7 +1311,7 @@ sub init_blacklist {
 		'Ok.Ru 3' => {
 				'host'  => qr/^((m|connect|www)\.)?o(dno)?k(lassniki)?\.ru$/,
 				'path'  => '/offer',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Open Authorization' => {
 				'host'  => '',
@@ -1321,12 +1321,12 @@ sub init_blacklist {
 		'Outlook Calendar' => {
 				'host'  => qr/outlook\.(live|office)\.com$/,
 				'path'  => qr/^\/owa\/?$/,
-				'query' => qr/\bpath=\/calendar\/action\/compose\b/,
+				'query' => qr/(\A|[;&])path=\/calendar\/action\/compose\b/,
 		},
 		'Parler' => {
 				'host'  => 'parler.com',
 				'path'  => '/new-post',
-				'query' => qr/\bmessage=/,
+				'query' => qr/(\A|[;&])message=/,
 		},
 		'Pinterest' => {
 				'host'  => qr/^(www\.)?pinterest.com$/,
@@ -1336,12 +1336,12 @@ sub init_blacklist {
 		'Pocket' => {
 				'host'  => 'getpocket.com',
 				'path'  => qr/^\/(edit|save)$/,
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Reddit' => {
 				'host'  => qr/^(www\.)?reddit\.com$/,
 				'path'  => '/submit',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Stack Overflow 1' => {
 				'host'  => qr/[^|\.](askubuntu|serverfault|stack(exchange|overflow)|superuser)\.com$/,
@@ -1356,7 +1356,7 @@ sub init_blacklist {
 		'Stumble Upon' => {
 				'host'  => 'www.stumbleupon.com',
 				'path'  => '/submit',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Telegram' => {
 				'host'  => qr/^t(elegram)?\.me$/,
@@ -1376,12 +1376,12 @@ sub init_blacklist {
 		'Tumblr 1' => {
 				'host'  => qr/^(www\.)?tumblr\.com$/,
 				'path'  => qr/^\/share(\/link)?/,
-				'query' => qr/\bu(rl)?=/,
+				'query' => qr/(\A|[;&])u(rl)?=/,
 		},
 		'Tumblr 2' => {
 				'host'  => qr/^(www\.)?tumblr\.com$/,
 				'path'  => '/widgets/share/tool',
-				'query' => qr/\bcanonicalUrl=/,
+				'query' => qr/(\A|[;&])canonicalUrl=/,
 		},
 		# https://developer.twitter.com/en/docs/twitter-for-websites/web-intents/overview
 		'Twitter 1' => {
@@ -1392,7 +1392,7 @@ sub init_blacklist {
 		'Twitter 2' => {
 				'host'  => qr/^(www\.)?(twitter|x)\.com$/,
 				'path'  => '/share',
-				'query' => qr/\b(url|text)=/,
+				'query' => qr/(\A|[;&])(url|text)=/,
 		},
 		'Twitter 3' => {
 				'host'  => qr/^(www\.)?(twitter|x)\.com$/,
@@ -1407,17 +1407,17 @@ sub init_blacklist {
 		'VK' => {
 				'host'  => qr/vk(ontakte)?\.(ru|com)$/,
 				'path'  => '/share.php',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'WhatsApp 1' => {
 				'host'  => qr/^(api|web)\.whatsapp\.com$/,
 				'path'  => '/send',
-				'query' => qr/\btext=/,
+				'query' => qr/(\A|[;&])text=/,
 		},
 		'WhatsApp 2' => {
 				'host'  => 'wa.me',
 				'path'  => '',
-				'query' => qr/\btext=/,
+				'query' => qr/(\A|[;&])text=/,
 		},
 		'WordPress 1' => {
 				'host'  => '',
@@ -1427,47 +1427,47 @@ sub init_blacklist {
 		'WordPress 2' => {
 				'host'  => '',
 				'path'  => '',
-				'query' => qr/\bshare=(facebook|email|instagram|jetpack-whatsapp|linkedin|pinterest|pocket|reddit|telegram|tumblr|twitter)\b/,
+				'query' => qr/(\A|[;&])share=(facebook|email|instagram|jetpack-whatsapp|linkedin|pinterest|pocket|reddit|telegram|tumblr|twitter)\b/,
 		},
 		'WordPress 3' => {
 				'host'  => 'widgets.wp.com',
 				'path'  => '/likes/index.html',
-				'query' => qr/\bver=/,
+				'query' => qr/(\A|[;&])ver=/,
 		},
 		'XING 1' => {
 				'host'  => qr/^(www\.)?xing.com$/,
 				'path'  => '/spi/shares/new',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'XING 2' => {
 				'host'  => qr/^(www\.)?xing.com$/,
 				'path'  => '/app/user',
-				'query' => qr/\bop=share\b/,
+				'query' => qr/(\A|[;&])op=share\b/,
 		},
 		'XING 3' => {
 				'host'  => qr/^(www\.)?xing.com$/,
 				'path'  => '/social/share/spi',
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'XING 4' => {
 				'host'  => qr/^(www\.)?xing.com$/,
 				'path'  => qr/^\/social_plugins\/share(\/new)?\/?/,
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Yahoo' => {
 				'host'  => 'add.my.yahoo.com',
 				'path'  => qr/\/(content|rss)/,
-				'query' => qr/\burl=/,
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Yahoo Calendar' => {
 				'host'  => 'calendar.yahoo.com',
 				'path'  => '/',
-				'query' => qr/\bST=/,
+				'query' => qr/(\A|[;&])ST=/,
 		},
 		'Yandex' => {
 				'host'  => qr/^(oauth|passport)\.yandex\.ru$/,
 				'path'  => qr/^\/auth(orize)?$/,
-				'query' => qr/\bclient_id=/,
+				'query' => qr/(\A|[;&])client_id=/,
 		},
 		'?' => {
 				'host'  => '',
