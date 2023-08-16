@@ -1233,6 +1233,11 @@ sub init_blacklist {
 				'path'  => '/ns.html',
 				'query' => qr/(\A|[;&])id=/,
 		},
+		'Gustav Springer Verlag' => {
+				'host'  => 'link.springer.com',
+				'path'  => '/signup-login',
+				'query' => '',
+		},
 		'Heise' => {
 				'host'  => 'www.heise.de',
 				'path'  => qr/^\/sso\//,
