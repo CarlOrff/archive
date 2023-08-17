@@ -1243,6 +1243,11 @@ sub init_blacklist {
 				'path'  => '/signup-login',
 				'query' => '',
 		},
+		'Gustav Springer Verlag (Nature)' => {
+				'host'  => qr/^idp(\.|-personal-authenticator\.springer)nature.com$/,
+				'path'  => qr/^\/(auth\/personal\/springernature|gateway)$/,
+				'query' => qr/(\A|[;&])redirect_uri=/,
+		},
 		'Heise' => {
 				'host'  => 'www.heise.de',
 				'path'  => qr/^\/sso\//,
