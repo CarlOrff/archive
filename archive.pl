@@ -1193,6 +1193,11 @@ sub init_blacklist {
 				'path'  => qr/^\/newsletters\//,
 				'query' => qr/(\A|[;&])prm=/,
 		},
+		'Elsevier' => {
+				'host'  => 'id.elsevier.com',
+				'path'  => '',
+				'query' => '',
+		},
 		'Facebook 1' => {
 				'host'  => qr/(www\.)?facebook.com$/,
 				'path'  => qr/^\/(sharer\/)?sharer?\.php$/,
