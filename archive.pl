@@ -319,6 +319,7 @@ foreach my $url ( @urls ) {
 	
 	my $success = $r->is_success;
 	my $mime = $r->header('content-type');
+	my $length = $r->header('content-length');
 	my $content;
 	
 	if ($opts{F}) {
@@ -339,6 +340,7 @@ foreach my $url ( @urls ) {
 			$success = $r->is_success;
 			$mime = $r->header('content-type');
 			$content = $r->content;
+			$length = $r->header('content-length');
 		}
 		
 	}
@@ -346,7 +348,7 @@ foreach my $url ( @urls ) {
 		$content = $r->content;
 	}
     
-    if ($success) {
+    if ($success && $length > 0) {
 	
 		print "successfull!\n";
 		
