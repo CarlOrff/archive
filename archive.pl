@@ -333,6 +333,10 @@ foreach my $url ( @urls ) {
 		elsif ($mime =~ /html$/) {
 			
 			$content = get_firefox($url);
+			if (index($content, '<html><head></head><body></body></html>') == 0) {
+				$length = 0;
+			}
+			else { $length = length $content; }
 		}
 		else {
 			
@@ -347,9 +351,12 @@ foreach my $url ( @urls ) {
 	else {
 		$content = $r->content;
 	}
-    
-    if ($success && $length > 0) {
 	
+	#say "Length $length";
+    
+    if ($success && ( !defined $length || $length > 0) ) {
+		
+
 		print "successfull!\n";
 		
 		my($title, $description, $author, $language);
