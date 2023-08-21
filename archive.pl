@@ -319,7 +319,7 @@ foreach my $url ( @urls ) {
 	
 	my $success = $r->is_success;
 	my $mime = $r->header('content-type');
-	my $length = $r->header('content-length');
+	my $length;
 	my $content;
 	
 	if ($opts{F}) {
@@ -333,10 +333,6 @@ foreach my $url ( @urls ) {
 		elsif ($mime =~ /html$/) {
 			
 			$content = get_firefox($url);
-			if (index($content, '<html><head></head><body></body></html>') == 0) {
-				$length = 0;
-			}
-			else { $length = length $content; }
 		}
 		else {
 			
@@ -344,7 +340,6 @@ foreach my $url ( @urls ) {
 			$success = $r->is_success;
 			$mime = $r->header('content-type');
 			$content = $r->content;
-			$length = $r->header('content-length');
 		}
 		
 	}
@@ -352,9 +347,23 @@ foreach my $url ( @urls ) {
 		$content = $r->content;
 	}
 	
+	# Calculate content length
+	if (index($content, '<html><head></head><body></body></html>') == 0) {
+		
+		$length = 0;
+	}
+	elsif (defined $r->header('content-length') && $r->header('content-length') =~ /^\d+$/) {
+		
+		$length = $r->header('content-length');
+	}
+	else { 
+	
+		$length = length $content;
+	}
+	
 	#say "Length $length";
     
-    if ($success && ( !defined $length || $length > 0) ) {
+    if ($success && $length > 0 ) {
 		
 
 		print "successfull!\n";
