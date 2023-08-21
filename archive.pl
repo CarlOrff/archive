@@ -1227,6 +1227,11 @@ sub init_blacklist {
 				'path'  => '/bookmarklet/popout',
 				'query' => qr/(\A|[;&])url=/,
 		},
+		'Frontiers' => {
+				'host'  => 'www.frontiersin.org',
+				'path'  => '/people/login',
+				'query' => '',
+		},
 		'Gab' => {
 			'host'  => qr/^gab\.(ai|com)$/,
 			'path'  => '/compose',
