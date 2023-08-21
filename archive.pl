@@ -1187,6 +1187,11 @@ sub init_blacklist {
 				'path'  => '/manage/optin/ea',
 				'query' => qr/(\A|[;&])v=\b/,
 		},
+		'Creative Commons' => {
+				'host'  => 'creativecommons.org',
+				'path'  => qr/^\/licenses\/.+/,
+				'query' => '',
+		},
 		'Delicious' => {
 				'host'  => qr/^del(\.)?icio(\.)?us(\.com)?$/,
 				'path'  => qr/^\/(post|save)$/,
