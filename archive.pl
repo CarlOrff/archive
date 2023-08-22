@@ -1452,11 +1452,11 @@ sub init_blacklist {
 				'path'  => '/home',
 				'query' => '',
 		},
-		'Twitter 4' => {
-				'host'  => qr/^(www\.)?(twitter|x)\.com$/,
-				'path'  => qr/^\/\w+(\/status\/.+)?$/,
-				'query' => qr/^$/,
-		},
+		#'Twitter 4' => {
+		#		'host'  => qr/^(www\.)?(twitter|x)\.com$/,
+		#		'path'  => qr/^\/\w+(\/status\/.+)?$/,
+		#		'query' => qr/^$/,
+		#},
 		'VK' => {
 				'host'  => qr/vk(ontakte)?\.(ru|com)$/,
 				'path'  => '/share.php',
