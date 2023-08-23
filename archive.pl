@@ -1472,9 +1472,14 @@ sub init_blacklist {
 				'path'  => '',
 				'query' => qr/(\A|[;&])text=/,
 		},
-		'Wiley' => {
+		'Wiley 1' => {
 				'host'  => 'onlinelibrary.wiley.com',
 				'path'  => '/action/showLogin',
+				'query' => '',
+		},
+		'Wiley 2' => {
+				'host'  => 'authorservices.wiley.com',
+				'path'  => '',
 				'query' => '',
 		},
 		'WordPress 1' => {
