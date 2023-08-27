@@ -1396,6 +1396,11 @@ sub init_blacklist {
 				'path'  => '/submit',
 				'query' => qr/(\A|[;&])url=/,
 		},
+		'Science' => {
+				'host'  => 'www.science.org',
+				'path'  => '/action/ssostart',
+				'query' => '',
+		},
 		'Stack Overflow 1' => {
 				'host'  => qr/[^|\.](askubuntu|serverfault|stack(exchange|overflow)|superuser)\.com$/,
 				'path'  => qr/^\/users\/(login|signup)$/,
