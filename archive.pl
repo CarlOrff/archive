@@ -1183,7 +1183,7 @@ sub init_blacklist {
 		},
 		'Blogger' => {
 				'host'  => qr/^(draft|www)\.blogger\.com$/,
-				'path'  => qr/\.g$/,
+				'path'  => qr/(\.g$|^\/comment\/frame\/)/,
 				'query' => '',
 		},
 		'Cell Press' => {
