@@ -1473,7 +1473,7 @@ sub init_blacklist {
 				'query' => qr/(\A|[;&])text=/,
 		},
 		'Wiley 1' => {
-				'host'  => 'onlinelibrary.wiley.com',
+				'host'  => qr/^(.+\.)?onlinelibrary.wiley.com$/,
 				'path'  => '/action/showLogin',
 				'query' => '',
 		},
