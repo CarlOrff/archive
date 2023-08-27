@@ -25,7 +25,7 @@
 #               -P <proxy>                A proxy, fi. http://localhost:9050 for TOR service
 #               -r                        Obey robots.txt
 #               -s                        Save feed in Wayback machine (feed only)
-#               -$                        Store Wayback form response in file (for debugging) 
+#               -S                        Store Wayback form response in file (for debugging) 
 #               -t <access token>         *deprecated*
 #               -T <float>                Seconds delay per URL in seconds to respect IA's request limit
 #               -u <URL>                  Feed or WordPress XMLRPC URL
@@ -152,8 +152,8 @@ my @commands = (
 	'-P <proxy>                A proxy server, fi. socks4://localhost:9050 for TOR service',
     '-r                        Obey robots.txt',
 	'-s                        Save feed in Wayback machine',
+	'-S                        Store Wayback form response in file (for debugging)',
 	'-t <access token>         *deprecated*',
-	'-$                        Store Wayback form response in file (for debugging)',
 	"-T <float>                Seconds delay per URL in seconds to respect IA's request limit",
 	'-u <URL>                  Feed or WordPress (xmlrpc.php) URL',
 	'-v                        Version info',
