@@ -1401,6 +1401,11 @@ sub init_blacklist {
 				'path'  => '/action/ssostart',
 				'query' => '',
 		},
+		'Skype' => {
+				'host'  => 'web.skype.com',
+				'path'  => '/share',
+				'query' => qr/(\A|[;&])url=/,
+		},
 		'Stack Overflow 1' => {
 				'host'  => qr/[^|\.](askubuntu|serverfault|stack(exchange|overflow)|superuser)\.com$/,
 				'path'  => qr/^\/users\/(login|signup)$/,
