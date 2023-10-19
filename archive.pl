@@ -840,7 +840,7 @@ foreach my $url ( @urls ) {
 		}
 	
 		if ( $opts{D} ) {
-			say 'DEBUG mode active: not submited to Internet Archive!';
+			say 'DEBUG mode active: not submitted to Internet Archive!';
 		}
 		else {
 			download_wayback( $_ );
@@ -1176,6 +1176,11 @@ sub init_blacklist {
 				'path'  => '/live/redirect/',
 				'query' => qr/(\A|[;&])url=/,
 		},
+		'AddThis 3' => {
+				'host'  => 'api.addthis.com',
+				'path'  => qr/^\/oexchange\//,
+				'query' => qr/(\A|[;&])url=/,
+		},
 		'Add to any' => {
 				'host'  => 'www.addtoany.com',
 				'path'  => qr/^\/add_to\//,
@@ -1396,10 +1401,15 @@ sub init_blacklist {
 				'path'  => '/submit',
 				'query' => qr/(\A|[;&])url=/,
 		},
-		'Science' => {
+		'Science' => { 
 				'host'  => 'www.science.org',
 				'path'  => '/action/ssostart',
 				'query' => '',
+		},
+		'Skype' => {
+				'host'  => 'web.skype.com',
+				'path'  => '/share',
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Stack Overflow 1' => {
 				'host'  => qr/[^|\.](askubuntu|serverfault|stack(exchange|overflow)|superuser)\.com$/,

@@ -11,7 +11,7 @@ use LWP::RobotUA;
 use WWW::RobotRules;
 use URI;
 
-my $start_url = qw{ https://ammann-horak.agency/index.php/de/kuenstler-de/artist-gould-stephen-de };
+my $start_url = qw{ https://www.gabyweber.com/index.php/de/ };
 my $pattern = '';
 my $host = URI->new(URI->new($start_url)->canonical)->host;
 
@@ -25,12 +25,15 @@ $ua->rules(WWW::RobotRules->new($uas)); # robots.txt-Objekt
 
 my $more;
 my %urls;
+my $count = 0;
+
 $urls{$start_url}++;
 do {
 	
 	$more = scalar keys %urls;
 	
 	foreach my $url (keys %urls) {
+		
 		
 		$url =~ s/\#.*//; # remove hash part
 		next if exists $url_seen{$url};
@@ -39,6 +42,8 @@ do {
 		next if $host ne URI->new(URI->new($url)->canonical)->host;
 		next if length $pattern > 0 && index($url,$pattern) < 0;
 		push(@links, ($url));
+		
+		say ++$count . "/$more $url";
 		
 		my $r = $ua->request(HTTP::Request->new( GET => $url ));
 		
