@@ -1311,6 +1311,16 @@ sub init_blacklist {
 				'path'  => '/login',
 				'query' => '',
 		},
+		'Line 1' => {
+				'host'  => 'line.me',
+				'path'  => '/R/msg/text',
+				'query' => '',
+		},
+		'Line 2' => {
+				'host'  => 'access.line.me',
+				'path'  => '',
+				'query' => '',
+		},
 		'Linked In 1' => {
 				'host'  => qr/^(www\.)?linkedin\.com$/,
 				'path'  => '/shareArticle',
