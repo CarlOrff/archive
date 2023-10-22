@@ -1267,9 +1267,9 @@ sub init_blacklist {
 				'query' => '',
 		},
 		'Google Marketing Platform' => {
-				'host'  => 'pubads.g.doubleclick.net',
+				'host'  => qr/\.doubleclick\.net$/,
 				'path'  => '',
-				'query' => qr/.+=.+/,
+				'query' => '',
 		},
 		'Google Tag Manager' => {
 				'host'  => 'www.googletagmanager.com',
