@@ -1256,6 +1256,11 @@ sub init_blacklist {
 			'path'  => '/compose',
 			'query' => qr/(\A|[;&])url=/,,
 		},
+		'Gettr' => {
+				'host'  => 'gettr.com',
+				'path'  => '/share',
+				'query' => '',
+		},
 		'Google Calendar' => {
 				'host'  => 'www.google.com',
 				'path'  => '/calendar/event',
