@@ -1296,6 +1296,16 @@ sub init_blacklist {
 				'path'  => qr/^\/(p|invites\/contact)\//,
 				'query' => '',
 		},
+		'Ionos 1' => {
+				'host'  => 'login.ionos.de',
+				'path'  => '',
+				'query' => '',
+		},
+		'Ionos 2' => {
+				'host'  => 'login.1and1-editor.com',
+				'path'  => '',
+				'query' => '',
+		},
 		'Jimdo 1' => {
 				'host'  => 'a.jimdo.com',
 				'path'  => qr/^\/app\/auth\//,
@@ -1490,6 +1500,11 @@ sub init_blacklist {
 		'VK' => {
 				'host'  => qr/vk(ontakte)?\.(ru|com)$/,
 				'path'  => '/share.php',
+				'query' => qr/(\A|[;&])url=/,
+		},
+		'Weibo' => {
+				'host'  => 'service.weibo.com',
+				'path'  => '/share/share.php',
 				'query' => qr/(\A|[;&])url=/,
 		},
 		'WhatsApp 1' => {
