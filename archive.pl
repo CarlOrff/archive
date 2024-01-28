@@ -1211,6 +1211,11 @@ sub init_blacklist {
 				'path'  => qr/^\/(post|save)$/,
 				'query' => qr/(\A|[;&])url=/,
 		},
+		'Diaspora' => {
+				'host'  => 'share.diasporafoundation.org',
+				'path'  => '',
+				'query' => qr/(\A|[;&])url=/,
+		},
 		'Digg' => {
 				'host'  => qr/^(www\.)?digg\.com$/,
 				'path'  => '/submit',
