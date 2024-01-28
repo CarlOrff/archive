@@ -1351,6 +1351,11 @@ sub init_blacklist {
 				'path'  => '/share',
 				'query' => qr/(\A|[;&])link=/,
 		},
+		'Microsoft' => {
+				'host'  => 'login.microsoftonline.com',
+				'path'  => '',
+				'query' => '',
+		},
 		'Mix' => {
 				'host'  => 'mix.com',
 				'path'  => '/mixit',
@@ -1389,7 +1394,7 @@ sub init_blacklist {
 		'Outlook Calendar' => {
 				'host'  => qr/outlook\.(live|office)\.com$/,
 				'path'  => qr/^\/owa\/?$/,
-				'query' => qr/(\A|[;&])path=\/calendar\/action\/compose\b/,
+				'query' => qr/(\A|[;&])path=/,
 		},
 		'Parler' => {
 				'host'  => 'parler.com',
@@ -1477,11 +1482,11 @@ sub init_blacklist {
 				'path'  => '/home',
 				'query' => '',
 		},
-		#'Twitter 4' => {
-		#		'host'  => qr/^(www\.)?(twitter|x)\.com$/,
-		#		'path'  => qr/^\/\w+(\/status\/.+)?$/,
-		#		'query' => qr/^$/,
-		#},
+		'Twitter 4' => {
+				'host'  => qr/^((www|mobile)\.)?(twitter|x)\.com$/,
+				'path'  => '',
+				'query' => '',
+		},
 		'VK' => {
 				'host'  => qr/vk(ontakte)?\.(ru|com)$/,
 				'path'  => '/share.php',
