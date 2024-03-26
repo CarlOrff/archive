@@ -1446,6 +1446,11 @@ sub init_blacklist {
 				'path'  => '/share',
 				'query' => qr/(\A|[;&])url=/,
 		},
+		'Snapchat' => {
+				'host'  => 'www.snapchat.com',
+				'path'  => qr/^\/add\/.+/,
+				'query' => '',
+		},
 		'Stack Overflow 1' => {
 				'host'  => qr/[^|\.](askubuntu|serverfault|stack(exchange|overflow)|superuser)\.com$/,
 				'path'  => qr/^\/users\/(login|signup)$/,
