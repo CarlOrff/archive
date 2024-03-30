@@ -1246,6 +1246,11 @@ sub init_blacklist {
 				'path'  => '/plugins/like.php',
 				'query' => qr/(\A|[;&])(href|link)=/,
 		},
+		'Facebook 4' => {
+				'host'  => qr/(www|[a-z]{2}-[a-z]{2})\.facebook.com$/,
+				'path'  => '',
+				'query' => '',
+		},
 		'Flipboard' => {
 				'host'  => 'share.flipboard.com',
 				'path'  => '/bookmarklet/popout',
