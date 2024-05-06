@@ -1317,7 +1317,7 @@ sub init_blacklist {
 				'query' => '',
 		},
 		'Ionos 2' => {
-				'host'  => 'login.1and1-editor.com',
+				'host'  => qr/[\A \.](1and1|mywebsite)-editor\.com$/,
 				'path'  => '',
 				'query' => '',
 		},
