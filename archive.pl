@@ -1356,6 +1356,11 @@ sub init_blacklist {
 				'path'  => '/sharing/share-offsite/',
 				'query' => qr/(\A|[;&])url=/,
 		},
+		'Linked In 3' => {
+				'host'  => qr/^(www\.)?linkedin\.com$/,
+				'path'  => qr/\/signup\/.*/,
+				'query' => '',
+		},
 		'Mastodon 1' => {
 				'host'  => qr/^[\w-\.]+\.social$/,
 				'path'  => '/share',
