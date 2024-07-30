@@ -939,7 +939,7 @@ if ($opts{l}) {
 	if (defined keys %linked) {
 		say "\nsaving linked documents:";
 		
-		grep { delete( $linked{ $_ } ) if $_ !~ /^https?:\/\/\w/ || $_ =~ /^https?:\/\/\web\.archive\.org\// } keys %linked;
+		grep { delete( $linked{ $_ } ) if $_ !~ /^https?:\/\/\w/ } keys %linked;
 		say 'Saving ' . scalar( values %linked ) . ' URLs';
 		
 		my $lrun = 0;
@@ -1369,6 +1369,11 @@ sub init_blacklist {
 		'Linked In 3' => {
 				'host'  => qr/^(www\.)?linkedin\.com$/,
 				'path'  => qr/\/signup\/.*/,
+				'query' => '',
+		},
+		'Localhost' => {
+				'host'  => qr/^([a-zA-Z\d][a-zA-Z\-\d\.]+\.)?localhost$/,
+				'path'  => '',
 				'query' => '',
 		},
 		'Mastodon 1' => {
