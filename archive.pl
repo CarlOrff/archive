@@ -279,7 +279,6 @@ foreach my $url ( @urls ) {
 	
 	my $parsed_url = new URI $url;
 	my $host = $parsed_url->host;
-	next if $host eq 'web.archive.org';  # IA doesn't save its own copies again
 	my $scheme = $parsed_url->scheme;
 	next if $scheme !~ /^https?$/;  # IA doen't save non-HTTP schemes
 	my $path = $parsed_url->path;
@@ -821,31 +820,37 @@ foreach my $url ( @urls ) {
 	my %urls;
 	$urls{$url}++;
 	
-	foreach ( keys %urls ) {
+	if ( $host ne 'web.archive.org' ) {
 	
-		my $available = get_wayback_available( $_ );
+		foreach ( keys %urls ) {
 		
-		say "Available in Wayback Machine:";
-		if ( 'HASH' eq Scalar::Util::reftype($available) ) {
-			say "\tURL: " . $$available{url} if exists( $$available{url} );
-			say "\tavailable: " . $$available{archived_snapshots}{closest}{available} if exists( $$available{archived_snapshots}{closest}{available} );
-			say "\tstatus: " . $$available{archived_snapshots}{closest}{status} if exists( $$available{archived_snapshots}{closest}{status} );
-			if (exists( $$available{archived_snapshots}{closest}{timestamp} ) ) {
-				$$available{archived_snapshots}{closest}{timestamp} =~ s/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/$3.$2.$1 $4:$5:$6/;
-				say "\tclosest: " . $$available{archived_snapshots}{closest}{timestamp};
+			my $available = get_wayback_available( $_ );
+			
+			say "Available in Wayback Machine:";
+			if ( 'HASH' eq Scalar::Util::reftype($available) ) {
+				say "\tURL: " . $$available{url} if exists( $$available{url} );
+				say "\tavailable: " . $$available{archived_snapshots}{closest}{available} if exists( $$available{archived_snapshots}{closest}{available} );
+				say "\tstatus: " . $$available{archived_snapshots}{closest}{status} if exists( $$available{archived_snapshots}{closest}{status} );
+				if (exists( $$available{archived_snapshots}{closest}{timestamp} ) ) {
+					$$available{archived_snapshots}{closest}{timestamp} =~ s/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/$3.$2.$1 $4:$5:$6/;
+					say "\tclosest: " . $$available{archived_snapshots}{closest}{timestamp};
+				}
+			}
+			else {
+				say "\tCan't check: $available ";
+			}
+		
+			if ( $opts{D} ) {
+				say 'DEBUG mode active: not submitted to Internet Archive!';
+			}
+			else {
+				download_wayback( $_ );
 			}
 		}
-		else {
-			say "\tCan't check: $available ";
-		}
-	
-		if ( $opts{D} ) {
-			say 'DEBUG mode active: not submitted to Internet Archive!';
-		}
-		else {
-			download_wayback( $_ );
-		}
-	} 
+	}
+	else {
+		say "Wayback Machine doesn\'t store its own copies again.";
+	}
 		
 	$download_method = 0;
 	
@@ -1291,6 +1296,11 @@ sub init_blacklist {
 				'path'  => '/ns.html',
 				'query' => qr/(\A|[;&])id=/,
 		},
+		'Government Site Builder' => {
+				'host'  => '',
+				'path'  => qr/^\/error_path\//, 
+				'query' => '',
+		},
 		'Gustav Springer Verlag' => {
 				'host'  => 'link.springer.com',
 				'path'  => '/signup-login',
@@ -1526,6 +1536,11 @@ sub init_blacklist {
 				'host'  => qr/vk(ontakte)?\.(ru|com)$/,
 				'path'  => '/share.php',
 				'query' => qr/(\A|[;&])url=/,
+		},
+		'Wayback Machine' => {
+				'host'  => 'web.archive.org',
+				'path'  => '',
+				'query' => '',
 		},
 		'Weibo' => {
 				'host'  => 'service.weibo.com',
