@@ -1273,6 +1273,11 @@ sub init_blacklist {
 			'path'  => '/compose',
 			'query' => qr/(\A|[;&])url=/,,
 		},
+		'Geocities' => {
+				'host'  => qr/(\A|\.)geocities\.(co\.jp|(yahoo\.)?com)$/,
+				'path'  => '',
+				'query' => '',
+		},
 		'Gettr' => {
 				'host'  => 'gettr.com',
 				'path'  => '/share',
