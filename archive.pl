@@ -281,6 +281,8 @@ foreach my $url ( @urls ) {
 	my $host = $parsed_url->host;
 	my $scheme = $parsed_url->scheme;
 	next if $scheme !~ /^https?$/;  # IA doen't save non-HTTP schemes
+	my $port = $parsed_url->port;
+	$host .= ':'.$port if defined $port && ( $port != 80 && $port != 443 );
 	my $path = $parsed_url->path;
 	my $query = $parsed_url->query;
 	my $path_query = $path;
@@ -1385,6 +1387,11 @@ sub init_blacklist {
 				'host'  => qr/^m(astodo|std)n\..+/,
 				'path'  => '/share',
 				'query' => qr/(\A|[;&])text=/,
+		},
+		'MastodonShare' => {
+				'host'  => 'mastodonshare.com',
+				'path'  => '',
+				'query' => qr/(\A|[;&])url=/,
 		},
 		'Mendeley' => {
 				'host'  => 'www.mendeley.com',
