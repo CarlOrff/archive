@@ -821,6 +821,7 @@ foreach my $url ( @urls ) {
 	### TO DO. save various URL shapes here
 	my %urls;
 	$urls{$url}++;
+	$urls{ bare_url( $url ) }++;
 	
 	if ( $host ne 'web.archive.org' ) {
 	
@@ -969,6 +970,21 @@ say "Execution time: $duration s";
 # Subroutines
 ##################################################################################################
 
+# arg 1: URL
+# returns URL stripped off unnecessary query params
+sub bare_url {
+	my $u = URI->new( $_[0] );
+	my $_query = $u->query;
+	$_query =~ s/&?(fb|g|tw)clid=[^&]*//g; # FB, Google, Twitter
+	$_query =~ s/&?sfnsn=[^&]*//g; # FB
+	$_query =~ s/&?(utm|pk|ib)_[a-z]+=[^&]*//g; # Matomo, GA
+	$_query =~ s/&?google_editor_picks=?[^&]*//g; # Google News
+	$_query =~ s/&?CMP=[^&]*//g; # Guardian
+	$_query =~ s/&?wt_mc=[^&]*//g; # Heise
+	$_query =~ s/\A&//; # leading ampersand
+	$u->query( $_query );
+	return $u->as_string;
+}
 
 # arg 1: string
 # returns string stripped off HTML tags and HTML entities
