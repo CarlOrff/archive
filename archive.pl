@@ -943,6 +943,7 @@ if ($opts{l}) {
 		say "\nsaving linked documents:";
 		
 		grep { delete( $linked{ $_ } ) if $_ !~ /^https?:\/\/\w/ } keys %linked;
+		grep { delete( $linked{ $_ } ) if url_is_blacklisted( $_ ) } keys %linked;
 		say 'Saving ' . scalar( values %linked ) . ' URLs';
 		
 		my $lrun = 0;
@@ -950,8 +951,6 @@ if ($opts{l}) {
 		foreach my $linked (keys %linked) {
 			
 			next if exists( $urls_seen{ $linked } );
-			next if url_is_blacklisted( $linked );
-			#say 'not blacklisted';
 			
 			say '#' . ++$lrun . ' ' . $linked;
 			
@@ -975,12 +974,15 @@ say "Execution time: $duration s";
 sub bare_url {
 	my $u = URI->new( $_[0] );
 	my $_query = $u->query;
+	my $_host = $u->host;
 	$_query =~ s/&?(fb|g|tw)clid=[^&]*//g; # FB, Google, Twitter
-	$_query =~ s/&?sfnsn=[^&]*//g; # FB
+	$_query =~ s/&?sfnsn=[^&]*//; # FB
 	$_query =~ s/&?(utm|pk|ib)_[a-z]+=[^&]*//g; # Matomo, GA
-	$_query =~ s/&?google_editor_picks=?[^&]*//g; # Google News
-	$_query =~ s/&?CMP=[^&]*//g; # Guardian
-	$_query =~ s/&?wt_mc=[^&]*//g; # Heise
+	$_query =~ s/&?google_editor_picks=?[^&]*//; # Google News
+	$_query =~ s/&?CMP=[^&]*// if index( $_host, 'theguardian.com' ) > -1; # Guardian
+	$_query =~ s/&?(spref|m)=[^&]*// if index( $_host, 'blogspot.' ) > -1; # Blogger
+	$_query =~ s/&?wt_mc=[^&]*// if index( $_host, 'heise.de' ) > -1; # Heise
+	$_query =~ s/&?ref(errer)?=[^&]*//;
 	$_query =~ s/\A&//; # leading ampersand
 	$u->query( $_query );
 	return $u->as_string;
@@ -1570,8 +1572,18 @@ sub init_blacklist {
 				'path'  => '/share.php',
 				'query' => qr/(\A|[;&])url=/,
 		},
-		'Wayback Machine' => {
+		'Wayback Machine 1' => {
 				'host'  => 'web.archive.org',
+				'path'  => '',
+				'query' => '',
+		},
+		'Wayback Machine 2' => {
+				'host'  => 'archive.org',
+				'path'  => qr/^\/(details|includes|web)\//,
+				'query' => '',
+		},
+		'Wayback Machine 3' => {
+				'host'  => 'faq.web.archive.org',
 				'path'  => '',
 				'query' => '',
 		},
