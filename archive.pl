@@ -101,7 +101,7 @@ if ( scalar @ARGV == 0 ) {
 ##################################################################################################
 
 
-my $VERSION = "2.4";
+my $VERSION = "2.5";
 my $botname = "archive.pl-$VERSION";
 my @urls;
 my $author_delimiter = '/';
