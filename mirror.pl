@@ -11,7 +11,7 @@ use LWP::RobotUA;
 use WWW::RobotRules;
 use URI;
 
-my $start_url = qw{ https://afarensis99.wordpress.com/ };
+my $start_url = qw{ http://www.knastblattaxel.com/ };
 
 my $pattern = '';
 my $host = URI->new(URI->new($start_url)->canonical)->host;

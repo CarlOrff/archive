@@ -1316,6 +1316,11 @@ sub init_blacklist {
 				'path'  => '',
 				'query' => '',
 		},
+		'Google Syndication' => {
+				'host'  => qr/\.syndication\.com$/,
+				'path'  => '',
+				'query' => '',
+		},
 		'Google Tag Manager' => {
 				'host'  => 'www.googletagmanager.com',
 				'path'  => '/ns.html',
