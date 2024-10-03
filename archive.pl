@@ -1625,7 +1625,7 @@ sub init_blacklist {
 		'WordPress 2' => {
 				'host'  => '',
 				'path'  => '',
-				'query' => qr/(\A|[;&])share=(facebook|email|instagram|jetpack-whatsapp|linkedin|pinterest|pocket|reddit|telegram|tumblr|twitter)\b/,
+				'query' => qr/(\A|[;&])share=(facebook|email|instagram|jetpack-whatsapp|linkedin|mastodon|pinterest|pocket|reddit|telegram|tumblr|twitter)\b/,
 		},
 		'WordPress 3' => {
 				'host'  => 'widgets.wp.com',
