@@ -1541,6 +1541,11 @@ sub init_blacklist {
 				'path'  => '',
 				'query' => '',
 		},
+		'Technorati' => {
+				'host'  => 'technorati.com',
+				'path'  => '/faves',
+				'query' => '',
+		},
 		'Tumblr 1' => {
 				'host'  => qr/^(www\.)?tumblr\.com$/,
 				'path'  => qr/^\/share(\/link)?/,
