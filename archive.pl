@@ -1317,7 +1317,7 @@ sub init_blacklist {
 				'query' => '',
 		},
 		'Google Syndication' => {
-				'host'  => qr/\.syndication\.com$/,
+				'host'  => qr/\.googlesyndication\.com$/,
 				'path'  => '',
 				'query' => '',
 		},
