@@ -975,15 +975,21 @@ sub bare_url {
 	my $u = URI->new( $_[0] );
 	my $_query = $u->query;
 	my $_host = $u->host;
-	$_query =~ s/&?(fb|g|tw)clid=[^&]*//g; # FB, Google, Twitter
-	$_query =~ s/&?sfnsn=[^&]*//; # FB
-	$_query =~ s/&?(utm|pk|ib)_[a-z]+=[^&]*//g; # Matomo, GA
-	$_query =~ s/&?google_editor_picks=?[^&]*//; # Google News
-	$_query =~ s/&?CMP=[^&]*// if index( $_host, 'theguardian.com' ) > -1; # Guardian
-	$_query =~ s/&?(spref|m)=[^&]*// if index( $_host, 'blogspot.' ) > -1; # Blogger
-	$_query =~ s/&?wt_mc=[^&]*// if index( $_host, 'heise.de' ) > -1; # Heise
-	$_query =~ s/&?ref(errer)?=[^&]*//;
-	$_query =~ s/\A&//; # leading ampersand
+
+	if    ( index( $_host, 'theguardian.com' ) > -1 )  { $_query =~ s/\b\b\b\b\b&?CMP=[^&]*// }      # Guardian
+	elsif ( index( $_host, 'blogspot.' ) > -1 )        { $_query =~ s/\b\b\b\b&?(spref|m)=[^&]*//g } # blogger.com
+	elsif ( index( $_host, 'heise.de' ) > -1 )         { $_query =~ s/\b\b\b&?wt_mc=[^&]*// }        # Heise
+	elsif ( index( $_host, 'lemonde.fr' ) > -1 )       { $_query =~ s/\b\b&?lmd_[a-z]+=[^&]*//g }    # Le Monde
+	elsif ( index( $_host, 'youtube.com' ) > -1 )      { $_query =~ s/\b&?featured=[^&]*// }         # Youtube
+	elsif ( index( $_host, 'ingram-braun.net' ) > -1 ) { $_query =~ s/\b&?ib_[a-z]+=[^&]*//g }       # me
+	
+	$_query =~ s/\b&?ref(errer)?=[^&]*//;
+	$_query =~ s/\b\b\b\b&?(fb|g|tw)clid=[^&]*//g; # FB, Google, Twitter
+	$_query =~ s/\b\b\b&?sfnsn=[^&]*//;            # FB
+	$_query =~ s/\b\b&?(utm|pk)_[a-z]+=[^&]*//g;   # Matomo, GA
+	$_query =~ s/\b&?google_editor_picks=?[^&]*//; # Google News
+	$_query =~ s/\A&//;                            # leading ampersand
+
 	$u->query( $_query );
 	return $u->as_string;
 }
