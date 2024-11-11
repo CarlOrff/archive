@@ -976,19 +976,20 @@ sub bare_url {
 	my $_query = $u->query;
 	my $_host = $u->host;
 
-	if    ( index( $_host, 'theguardian.com' ) > -1 )  { $_query =~ s/\b\b\b\b\b&?CMP=[^&]*// }      # Guardian
-	elsif ( index( $_host, 'blogspot.' ) > -1 )        { $_query =~ s/\b\b\b\b&?(spref|m)=[^&]*//g } # blogger.com
-	elsif ( index( $_host, 'heise.de' ) > -1 )         { $_query =~ s/\b\b\b&?wt_mc=[^&]*// }        # Heise
-	elsif ( index( $_host, 'lemonde.fr' ) > -1 )       { $_query =~ s/\b\b&?lmd_[a-z]+=[^&]*//g }    # Le Monde
-	elsif ( index( $_host, 'youtube.com' ) > -1 )      { $_query =~ s/\b&?featured=[^&]*// }         # Youtube
-	elsif ( index( $_host, 'ingram-braun.net' ) > -1 ) { $_query =~ s/\b&?ib_[a-z]+=[^&]*//g }       # me
+	if    ( index( $_host, 'theguardian.com' ) > -1 )  { $_query =~ s/(\A|[&;])CMP=[^&]*// }         # Guardian
+	elsif ( index( $_host, 'blogspot.' ) > -1 )        { $_query =~ s/(\A|[&;])(spref|m)=[^&]*//g }  # blogger.com
+	elsif ( index( $_host, 'heise.de' ) > -1 )         { $_query =~ s/(\A|[&;])wt_mc=[^&]*// }       # Heise
+	elsif ( index( $_host, 'lemonde.fr' ) > -1 )       { $_query =~ s/(\A|[&;])lmd_[a-z]+=[^&]*//g } # Le Monde
+	elsif ( index( $_host, 'elpais.com' ) > -1 )       { $_query =~ s/(\A|[&;])ssm=[^&]*// }         # El País
+	elsif ( index( $_host, 'youtube.com' ) > -1 )      { $_query =~ s/(\A|[&;])featured=[^&]*// }    # Youtube
+	elsif ( index( $_host, 'ingram-braun.net' ) > -1 ) { $_query =~ s/(\A|[&;])ib_[a-z]+=[^&]*//g }  # me
 	
-	$_query =~ s/\b&?ref(errer)?=[^&]*//;
-	$_query =~ s/\b\b\b\b&?(fb|g|tw)clid=[^&]*//g; # FB, Google, Twitter
-	$_query =~ s/\b\b\b&?sfnsn=[^&]*//;            # FB
-	$_query =~ s/\b\b&?(utm|pk)_[a-z]+=[^&]*//g;   # Matomo, GA
-	$_query =~ s/\b&?google_editor_picks=?[^&]*//; # Google News
-	$_query =~ s/\A&//;                            # leading ampersand
+	$_query =~ s/(\A|[&;])ref(errer)?=[^&]*//;
+	$_query =~ s/(\A|[&;])(fb|g|tw)clid=[^&]*//g;       # FB, Google, Twitter
+	$_query =~ s/(\A|[&;])sfnsn=[^&]*//;                # FB
+	$_query =~ s/(\A|[&;])(utm|pk)_[a-z]+=[^&]*//g;     # Matomo, GA
+	$_query =~ s/(\A|[&;])google_editor_picks=?[^&]*//; # Google News
+	$_query =~ s/\A&//;                              # leading ampersand
 
 	$u->query( $_query );
 	return $u->as_string;
