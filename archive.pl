@@ -296,7 +296,7 @@ foreach my $url ( @urls ) {
 	say $url;
     
     # remove high chars in path and query params:
-    $path_query = URI::Encode->new({double_encode => 0})->encode($path_query);
+    $path_query = URI::Encode::->new({double_encode => 0})->encode($path_query);
     
     # convert IDN to ACE
     $host = domain_to_ascii( $host );
@@ -976,13 +976,14 @@ sub bare_url {
 	my $_query = $u->query;
 	my $_host = $u->host;
 
-	if    ( index( $_host, 'theguardian.com' ) > -1 )  { $_query =~ s/(\A|[&;])CMP=[^&]*// }         # Guardian
-	elsif ( index( $_host, 'blogspot.' ) > -1 )        { $_query =~ s/(\A|[&;])(spref|m)=[^&]*//g }  # blogger.com
-	elsif ( index( $_host, 'heise.de' ) > -1 )         { $_query =~ s/(\A|[&;])wt_mc=[^&]*// }       # Heise
-	elsif ( index( $_host, 'lemonde.fr' ) > -1 )       { $_query =~ s/(\A|[&;])lmd_[a-z]+=[^&]*//g } # Le Monde
-	elsif ( index( $_host, 'elpais.com' ) > -1 )       { $_query =~ s/(\A|[&;])ssm=[^&]*// }         # El País
-	elsif ( index( $_host, 'youtube.com' ) > -1 )      { $_query =~ s/(\A|[&;])featured=[^&]*// }    # Youtube
-	elsif ( index( $_host, 'ingram-braun.net' ) > -1 ) { $_query =~ s/(\A|[&;])ib_[a-z]+=[^&]*//g }  # me
+	if    ( index( $_host, 'theguardian.com' ) > -1 )   { $_query =~ s/(\A|[&;])CMP=[^&]*// }         # Guardian
+	elsif ( index( $_host, 'sciencedirect.com' ) > -1 ) { $_query =~ s/(\A|[&;])via[=%][^&]*// }    # Elsevier
+	elsif ( index( $_host, 'blogspot.' ) > -1 )         { $_query =~ s/(\A|[&;])(spref|m)=[^&]*//g }  # blogger.com
+	elsif ( index( $_host, 'heise.de' ) > -1 )          { $_query =~ s/(\A|[&;])wt_mc=[^&]*// }       # Heise
+	elsif ( index( $_host, 'lemonde.fr' ) > -1 )        { $_query =~ s/(\A|[&;])lmd_[a-z]+=[^&]*//g } # Le Monde
+	elsif ( index( $_host, 'elpais.com' ) > -1 )        { $_query =~ s/(\A|[&;])ssm=[^&]*// }         # El País
+	elsif ( index( $_host, 'youtube.com' ) > -1 )       { $_query =~ s/(\A|[&;])featured=[^&]*// }    # Youtube
+	elsif ( index( $_host, 'ingram-braun.net' ) > -1 )  { $_query =~ s/(\A|[&;])ib_[a-z]+=[^&]*//g }  # me
 	
 	$_query =~ s/(\A|[&;])ref(errer)?=[^&]*//;
 	$_query =~ s/(\A|[&;])(fb|g|tw)clid=[^&]*//g;       # FB, Google, Twitter
