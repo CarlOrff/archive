@@ -1219,6 +1219,11 @@ sub init_blacklist {
 				'path'  => qr/^\/add_to\//,
 				'query' => qr/(\A|[;&])linkurl=/,
 		},
+		'Amazon' => {
+		'host'  => qr/(\.|\A)amazon-adsystem\.com$/,
+				'path'  => '',
+				'query' => '',
+		},
 		'Blogger' => {
 				'host'  => qr/^(draft|www)\.blogger\.com$/,
 				'path'  => qr/(\.g$|^\/comment\/frame\/)/,
