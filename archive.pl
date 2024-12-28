@@ -1586,7 +1586,7 @@ sub init_blacklist {
 				'query' => '',
 		},
 		'Virtual Minds' => {
-		'host'  => qr/}/(\.|\A)adition\.com$/,
+		'host'  => qr/(\.|\A)adition\.com$/,
 				'path'  => '',
 				'query' => '',
 		},
