@@ -11,7 +11,7 @@ use LWP::RobotUA;
 use WWW::RobotRules;
 use URI;
 
-my $start_url = qw{ http://ceramicsweb.org/ };
+my $start_url = qw{ https://www.kirwanarts.com/ };
 
 my $pattern = '';
 my $host = URI->new(URI->new($start_url)->canonical)->host;
@@ -19,10 +19,14 @@ my $host = URI->new(URI->new($start_url)->canonical)->host;
 my %url_seen;
 my @links;
 
-my $uas = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36';
+my $uas = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 my $ua = LWP::RobotUA->new($uas, 'mirror@live.de');
 $ua->delay(0); # in Minuten
 $ua->rules(WWW::RobotRules->new($uas)); # robots.txt-Objekt
+$ua->ssl_opts(  # we don't verify hostnames of TLS URLs
+		verify_mode   => 'SSL_VERIFY_PEER',
+		verify_hostname => 0, 
+);
 
 my $more;
 my %urls;
@@ -47,7 +51,7 @@ do {
 		say ++$count . "/$more $url";
 		
 		my $r = $ua->request(HTTP::Request->new( GET => $url ));
-		
+		#say $r->content;
 		if ($r->header('content-type') =~ /(html|xml)/i) {
 			
 			my $p = HTML::LinkExtor->new(\&get_links,$r->base);

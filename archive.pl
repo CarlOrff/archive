@@ -1585,6 +1585,11 @@ sub init_blacklist {
 				'path'  => '',
 				'query' => '',
 		},
+		'Virtual Minds' => {
+		'host'  => qr/}/(\.|\A)adition\.com$/,
+				'path'  => '',
+				'query' => '',
+		},
 		'VK' => {
 				'host'  => qr/vk(ontakte)?\.(ru|com)$/,
 				'path'  => '/share.php',
