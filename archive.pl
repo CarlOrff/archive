@@ -1464,6 +1464,11 @@ sub init_blacklist {
 				'path'  => '/authorize',
 				'query' => qr/(\A|[;&])client_id=/,
 		},
+		'Netvibes' => {
+				'host'  => 'www.netvibes.com',
+				'path'  => '/subscribe.php',
+				'query' => qr/(\A|[;&])url=/,
+		},
 		'Ok.Ru 1' => {
 				'host'  => qr/^((m|connect|www)\.)?o(dno)?k(lassniki)?\.ru$/,
 				'path'  => qr/^\/dk(\;jsessionid=[\w\.]+)?$/,
