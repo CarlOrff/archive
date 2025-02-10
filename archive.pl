@@ -55,6 +55,7 @@ my $start = time;
 #require Data::Dumper;
 use feature 'say';
 use utf8;
+binmode(STDOUT, ":utf8");
 
 use Browser::Open qw( open_browser );
 use DateTime;
