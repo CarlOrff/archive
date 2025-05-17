@@ -45,9 +45,7 @@
 
 use strict;
 
-
 my $start = time;
-
 
 #use diagnostics;
 #use warnings;
@@ -978,9 +976,8 @@ sub bare_url {
 	my $_host = $u->host;
 
 	if    ( index( $_host, 'theguardian.com' ) > -1 )   { $_query =~ s/(\A|[&;])CMP=[^&]*// }         # Guardian
-	elsif ( index( $_host, 'sciencedirect.com' ) > -1 ) { $_query =~ s/(\A|[&;])via[=%][^&]*// }    # Elsevier
-	elsif ( index( $_host, 'blogspot.' ) > -1 )         { $_query =~ s/(\A|[&;])(spref|m)=[^&]*//g }  # blogger.com
-	elsif ( index( $_host, 'heise.de' ) > -1 )          { $_query =~ s/(\A|[&;])wt_mc=[^&]*// }       # Heise
+	elsif ( index( $_host, 'sciencedirect.com' ) > -1 ) { $_query =~ s/(\A|[&;])via[=%][^&]*// }      # Elsevier
+	elsif ( index( $_host, 'blogspot.' ) > -1 )         { $_query =~ s/(\A|[&;])m=[^&]*//g }          # blogger.com
 	elsif ( index( $_host, 'lemonde.fr' ) > -1 )        { $_query =~ s/(\A|[&;])lmd_[a-z]+=[^&]*//g } # Le Monde
 	elsif ( index( $_host, 'elpais.com' ) > -1 )        { $_query =~ s/(\A|[&;])ssm=[^&]*// }         # El País
 	elsif ( index( $_host, 'youtube.com' ) > -1 )       { $_query =~ s/(\A|[&;])featured=[^&]*// }    # Youtube
@@ -988,10 +985,13 @@ sub bare_url {
 	
 	$_query =~ s/(\A|[&;])ref(errer)?=[^&]*//;
 	$_query =~ s/(\A|[&;])(fb|g|tw)clid=[^&]*//g;       # FB, Google, Twitter
-	$_query =~ s/(\A|[&;])sfnsn=[^&]*//;                # FB
+	$_query =~ s/(\A|[&;])sfnsn=[^&]*//;                # FB 
 	$_query =~ s/(\A|[&;])(utm|pk)_[a-z]+=[^&]*//g;     # Matomo, GA
 	$_query =~ s/(\A|[&;])google_editor_picks=?[^&]*//; # Google News
-	$_query =~ s/\A&//;                              # leading ampersand
+	$_query =~ s/(\A|[&;])(gad_[a-z]+=[^&]*//g;         # Google Ads
+	$_query =~ s/(\A|[&;])spref=[^&]*//;                # Google Blogger
+	$_query =~ s/(\A|[&;])wt_mc=[^&]*// }               # Mapp
+	$_query =~ s/\A&//;                                 # leading ampersand
 
 	$u->query( $_query );
 	return $u->as_string;
@@ -1634,7 +1634,7 @@ sub init_blacklist {
 		'WhatsApp 2' => {
 				'host'  => 'wa.me',
 				'path'  => '',
-				'query' => qr/(\A|[;&])text=/,
+				'query' => '',
 		},
 		'Wiley 1' => {
 				'host'  => qr/^(.+\.)?onlinelibrary.wiley.com$/,
