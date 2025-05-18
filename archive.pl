@@ -876,21 +876,27 @@ if ( $wp ) {
 
 	say "Posting on WordPress!";
 	
-	my $api = WP::API->new(
-		username         => $opts{n},
-		password         => $opts{p},
-		proxy            => $opts{u},
-		server_time_zone => ($opts{z}) ? $opts{z} : 'UTC',
-		blog_id => ($opts{d}) ? $opts{d} : 1,
-	);
-	 
-	# fix atabse saving error with 8bit ASCII 
-	my $post = $api->post()->create(
-		post_title    => $out_title,
-		#post_date_gmt => $dt,
-		post_content  => encode_entities( decode_entities( $outfile ), '^\n\x20-\x25\x27-\x7e' ),
-		#post_author   => 42,
-	);
+	local $@;
+	
+	eval {
+	
+		my $api = WP::API->new(
+			username         => $opts{n},
+			password         => $opts{p},
+			proxy            => $opts{u},
+			server_time_zone => ($opts{z}) ? $opts{z} : 'UTC',
+			blog_id => ($opts{d}) ? $opts{d} : 1,
+		);
+		 
+		# fix databse saving error with 8bit ASCII 
+		my $post = $api->post()->create(
+			post_title    => $out_title,
+			#post_date_gmt => $dt,
+			post_content  => encode_entities( decode_entities( $outfile ), '^\n\x20-\x25\x27-\x7e' ),
+			#post_author   => 42,
+		);
+	
+	}
 }
 
 # create file name
@@ -975,22 +981,22 @@ sub bare_url {
 	my $_query = $u->query;
 	my $_host = $u->host;
 
-	if    ( index( $_host, 'theguardian.com' ) > -1 )   { $_query =~ s/(\A|[&;])CMP=[^&]*// }         # Guardian
-	elsif ( index( $_host, 'sciencedirect.com' ) > -1 ) { $_query =~ s/(\A|[&;])via[=%][^&]*// }      # Elsevier
-	elsif ( index( $_host, 'blogspot.' ) > -1 )         { $_query =~ s/(\A|[&;])m=[^&]*//g }          # blogger.com
-	elsif ( index( $_host, 'lemonde.fr' ) > -1 )        { $_query =~ s/(\A|[&;])lmd_[a-z]+=[^&]*//g } # Le Monde
-	elsif ( index( $_host, 'elpais.com' ) > -1 )        { $_query =~ s/(\A|[&;])ssm=[^&]*// }         # El País
-	elsif ( index( $_host, 'youtube.com' ) > -1 )       { $_query =~ s/(\A|[&;])featured=[^&]*// }    # Youtube
-	elsif ( index( $_host, 'ingram-braun.net' ) > -1 )  { $_query =~ s/(\A|[&;])ib_[a-z]+=[^&]*//g }  # me
+	if    ( $_host =~ /(\A|\.)theguardian\.com$/ )   { $_query =~ s/(\A|[&;])CMP=[^&]*// }            # Guardian
+	elsif ( $_host =~ /(\A|\.)sciencedirect\.com$/ ) { $_query =~ s/(\A|[&;])via[=%][^&]*// }         # Elsevier
+	elsif ( $_host =~ /(\A|\.)blogspot\.[a-z]{2,}/ ) { $_query =~ s/(\A|[&;])m=[^&]*//g }             # Google Blogger
+	elsif ( $_host =~ /(\A|\.)lemonde\.fr$/ )        { $_query =~ s/(\A|[&;])lmd_[a-z]+=[^&]*//g }    # Le Monde
+	elsif ( $_host =~ /(\A|\.)elpais\.com$/ )        { $_query =~ s/(\A|[&;])ssm=[^&]*// }            # El País
+	elsif ( $_host =~ /(\A|\.)youtube(-nocookie)?\.com$/ ) { $_query =~ s/(\A|[&;])featured=[^&]*// } # Youtube
+	elsif ( $_host =~ /(\A|\.)ingram-braun\.net$/ )  { $_query =~ s/(\A|[&;])ib_[a-z]+=[^&]*//g }     # me
 	
 	$_query =~ s/(\A|[&;])ref(errer)?=[^&]*//;
 	$_query =~ s/(\A|[&;])(fb|g|tw)clid=[^&]*//g;       # FB, Google, Twitter
 	$_query =~ s/(\A|[&;])sfnsn=[^&]*//;                # FB 
 	$_query =~ s/(\A|[&;])(utm|pk)_[a-z]+=[^&]*//g;     # Matomo, GA
 	$_query =~ s/(\A|[&;])google_editor_picks=?[^&]*//; # Google News
-	$_query =~ s/(\A|[&;])(gad_[a-z]+=[^&]*//g;         # Google Ads
+	$_query =~ s/(\A|[&;])gad_[a-z]+=[^&]*//g;        	# Google Ads
 	$_query =~ s/(\A|[&;])spref=[^&]*//;                # Google Blogger
-	$_query =~ s/(\A|[&;])wt_mc=[^&]*// }               # Mapp
+	$_query =~ s/(\A|[&;])wt_mc=[^&]*//;                # Mapp
 	$_query =~ s/\A&//;                                 # leading ampersand
 
 	$u->query( $_query );
