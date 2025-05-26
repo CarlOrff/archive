@@ -990,14 +990,14 @@ sub bare_url {
 	elsif ( $_host =~ /(\A|\.)ingram-braun\.net$/ )  { $_query =~ s/(\A|[&;])ib_[a-z]+=[^&]*//g }     # me
 	
 	$_query =~ s/(\A|[&;])ref(errer)?=[^&]*//;
-	$_query =~ s/(\A|[&;])(fb|g|tw)clid=[^&]*//g;       # FB, Google, Twitter
-	$_query =~ s/(\A|[&;])sfnsn=[^&]*//;                # FB 
-	$_query =~ s/(\A|[&;])(utm|pk)_[a-z]+=[^&]*//g;     # Matomo, GA
-	$_query =~ s/(\A|[&;])google_editor_picks=?[^&]*//; # Google News
-	$_query =~ s/(\A|[&;])gad_[a-z]+=[^&]*//g;        	# Google Ads
-	$_query =~ s/(\A|[&;])spref=[^&]*//;                # Google Blogger
-	$_query =~ s/(\A|[&;])wt_mc=[^&]*//;                # Mapp
-	$_query =~ s/\A&//;                                 # leading ampersand
+	$_query =~ s/(\A|[&;])(fb|tw)clid=[^&]*//g;                     # FB, Twitter
+	$_query =~ s/(\A|[&;])sfnsn=[^&]*//;                            # FB 
+	$_query =~ s/(\A|[&;])(utm|pk)_[a-z]+=[^&]*//g;                 # Matomo, GA
+	$_query =~ s/(\A|[&;])google_editor_picks=?[^&]*//;             # Google News
+	$_query =~ s/(\A|[&;])(gad_source|gc[_l]id|h_ad_id)+=[^&]*//g;  # Google Ads
+	$_query =~ s/(\A|[&;])spref=[^&]*//;                            # Google Blogger
+	$_query =~ s/(\A|[&;])wt_mc=[^&]*//;                            # Mapp
+	$_query =~ s/\A&//;                                             # leading ampersand
 
 	$u->query( $_query );
 	return $u->as_string;
