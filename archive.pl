@@ -734,52 +734,55 @@ foreach my $url ( @urls ) {
 # Images
 ##################################################################################################
 		elsif ($r->header('content-type') =~ /image/) {
+			
+			eval {
 				
-			my $origimg = image_info(\$content);
-			my($width,$height) = dim($origimg);
-			my $imgfile = 'thumb.png';
-			my $thumb;
-			
-			# if image type is not known to Image::Info
-			$origimg->{'file_type'} = 'type?' if exists( $origimg->{'error'} );
-			
-			my $gdObj = new GD::Image($content);
-			
-			# make thumbnail
-			new Image::Thumbnail(
-				size       => 120,  # length of longest side
-				create     => 1,
-				input      => $gdObj,
-				outputpath => $imgfile,
-				outputtype => 'png',
-				module => 'GD',
-			) if defined $gdObj;
+				my $origimg = image_info(\$content);
+				my($width,$height) = dim($origimg);
+				my $imgfile = 'thumb.png';
+				my $thumb;
+				
+				# if image type is not known to Image::Info
+				$origimg->{'file_type'} = 'type?' if exists( $origimg->{'error'} );
+				
+				my $gdObj = new GD::Image($content);
+				
+				# make thumbnail
+				new Image::Thumbnail(
+					size       => 120,  # length of longest side
+					create     => 1,
+					input      => $gdObj,
+					outputpath => $imgfile,
+					outputtype => 'png',
+					module => 'GD',
+				) if defined $gdObj;
 
-		
-			# Open thumb and encode it
-			my $img = FileHandle->new($imgfile, '<:raw');
-			if (defined $img) {
 			
-				read($img, $thumb, -s $imgfile) ;
-				undef $img;
-			}
+				# Open thumb and encode it
+				my $img = FileHandle->new($imgfile, '<:raw');
+				if (defined $img) {
+				
+					read($img, $thumb, -s $imgfile) ;
+					undef $img;
+				}
+				
+				# Get thumb size
+				my($w, $h) = html_dim( image_info(\$thumb) );
+				$description = '<img ' . $w . $h . ' src="data:image/png;base64,' .  encode_base64($thumb) . '"/>' if length $thumb > 0;
 			
-			# Get thumb size
-			my($w, $h) = html_dim( image_info(\$thumb) );
-			$description = '<img ' . $w . $h . ' src="data:image/png;base64,' .  encode_base64($thumb) . '"/>' if length $thumb > 0;
-		
-			# Delete thumbnail
-			unlink $imgfile;
-			
-			if ($opts{a}) {
-				$outfile->add_entry(
-					link => $encoded_url,
-					summary => $description,
-					title => encode($title),
-				);
-			}
-			else {
-				$outfile .= '<li>IMAGE (' . $origimg->{'file_type'} .$width .' × ' . $height .') <a href="' . $encoded_url . '" type="' . $r->header('content-type') . '">' . encode_entities($encoded_url) . '</a> ' . $description . "</li>\n";
+				# Delete thumbnail
+				unlink $imgfile;
+				
+				if ($opts{a}) {
+					$outfile->add_entry(
+						link => $encoded_url,
+						summary => $description,
+						title => encode($title),
+					);
+				}
+				else {
+					$outfile .= '<li>IMAGE (' . $origimg->{'file_type'} .$width .' × ' . $height .') <a href="' . $encoded_url . '" type="' . $r->header('content-type') . '">' . encode_entities($encoded_url) . '</a> ' . $description . "</li>\n";
+				}
 			}
 		}
 ##################################################################################################
