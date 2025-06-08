@@ -274,7 +274,7 @@ foreach my $url ( @urls ) {
 
 	
 	# don't fetch empty URLs
-	next if length $url < 1 || exists( $urls_seen{ $url } ); # avoid empty lines or duplicate URLs
+	next if length $url < 7 || exists( $urls_seen{ $url } ) || index( $url, 'http' ) != 0; # avoid empty lines or duplicate URLs
 	
 	my $parsed_url = new URI $url;
 	my $host = $parsed_url->host;
@@ -992,13 +992,15 @@ sub bare_url {
 	elsif ( $_host =~ /(\A|\.)youtube(-nocookie)?\.com$/ ) { $_query =~ s/(\A|[&;])featured=[^&]*// } # Youtube
 	elsif ( $_host =~ /(\A|\.)ingram-braun\.net$/ )  { $_query =~ s/(\A|[&;])ib_[a-z]+=[^&]*//g }     # me
 	
+	$_query =~ s/(\A|[&;])(g(ad_|c)|h(sa?)?_)\w+=[^&]*//g if $_query =~ /(\A|[&;])(g(ad_source|c[_l]id)|h(sa)?_\w+)=/; # Google Ads
+	
 	$_query =~ s/(\A|[&;])ref(errer)?=[^&]*//;
 	$_query =~ s/(\A|[&;])(fb|tw)clid=[^&]*//g;                     # FB, Twitter
 	$_query =~ s/(\A|[&;])sfnsn=[^&]*//;                            # FB 
 	$_query =~ s/(\A|[&;])(utm|pk)_[a-z]+=[^&]*//g;                 # Matomo, GA
 	$_query =~ s/(\A|[&;])google_editor_picks=?[^&]*//;             # Google News
-	$_query =~ s/(\A|[&;])(gad_source|gc[_l]id|h_ad_id)+=[^&]*//g;  # Google Ads
 	$_query =~ s/(\A|[&;])spref=[^&]*//;                            # Google Blogger
+	$_query =~ s/\Am=[01]$//;                                       # Google Blogger
 	$_query =~ s/(\A|[&;])wt_mc=[^&]*//;                            # Mapp
 	$_query =~ s/\A&//;                                             # leading ampersand
 
