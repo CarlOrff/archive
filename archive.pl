@@ -1373,7 +1373,7 @@ sub init_blacklist {
 		},
 		'Instagram' => {
 				'host'  => 'www.instagram.com',
-				'path'  => qr/^\/(p|invites\/contact)\//,
+				'path'  => qr/^\/(p|reel|invites\/contact)\//,
 				'query' => '',
 		},
 		'Ionos 1' => {
