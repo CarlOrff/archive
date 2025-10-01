@@ -11,7 +11,7 @@ use LWP::RobotUA;
 use WWW::RobotRules;
 use URI;
 
-my $start_url = qw{ http://www.schweinfurth.org/Georg_Schweinfurth/Stammtafel.html };
+my $start_url = qw{ https://www.keltenland-hessen.de/ };
 
 my $pattern = '';
 my $host = URI->new(URI->new($start_url)->canonical)->host;
@@ -22,10 +22,11 @@ my @links;
 my $uas = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 my $ua = LWP::RobotUA->new($uas, 'mirror@live.de');
 $ua->delay(0); # in Minuten
-$ua->rules(WWW::RobotRules->new($uas)); # robots.txt-Objekt
+#$ua->rules(WWW::RobotRules->new($uas)); # robots.txt-Objekt
 $ua->ssl_opts(  # we don't verify hostnames of TLS URLs
-		verify_mode   => 'SSL_VERIFY_PEER',
-		verify_hostname => 0, 
+	verify_mode     => 0,
+	verify_hostname => 0, 
+	SSL_verify_mode => 0x00,
 );
 
 my $more;
@@ -39,19 +40,24 @@ do {
 	
 	foreach my $url (keys %urls) {
 		
-		
+		#say "URL: $url";
 		$url =~ s/\#.*//; # remove hash part
+		#say 1;
 		next if exists $url_seen{$url};
 		$url_seen{$url}++;
+		#say 2;
 		next if index(lc $url,'http') != 0;
+		#say 3;
 		next if $host ne URI->new(URI->new($url)->canonical)->host;
+		#say 4;
 		next if length $pattern > 0 && index($url,$pattern) < 0;
+		#say 5;
 		push(@links, ($url));
 		
 		say ++$count . "/$more $url";
 		
 		my $r = $ua->request(HTTP::Request->new( GET => $url ));
-		#say $r->content;
+		#say 'CONTENT: ' . $r->content;
 		if ($r->header('content-type') =~ /(html|xml)/i) {
 			
 			my $p = HTML::LinkExtor->new(\&get_links,$r->base);
