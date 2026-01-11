@@ -822,8 +822,9 @@ foreach my $url ( @urls ) {
 
     ### TO DO. save various URL shapes here
     my %urls;
-    $urls{$url}++;
+	$urls{ $url }++;
     $urls{ bare_url( $url ) }++;
+
 
     if ( $host ne 'web.archive.org' ) {
 
@@ -968,12 +969,16 @@ if ($opts{l}) {
         my $lrun = 0;
 
         foreach my $linked (keys %linked) {
+			
+			my $uu = URI::URL->new( $linked );
+			$uu->frag( undef );
+			my $uuu = $uu->as_string;
 
-            next if exists( $urls_seen{ $linked } );
+            next if exists( $urls_seen{ $uuu } );
 
-            say '#' . ++$lrun . ' ' . $linked;
+            say '#' . ++$lrun . ' ' . $uuu;
 
-            download_wayback( $linked ) if !$opts{D};
+            download_wayback( $uuu ) if !$opts{D};
         }
     }
     else {
