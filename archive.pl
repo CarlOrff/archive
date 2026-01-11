@@ -34,7 +34,7 @@
 #               -W <float>                Seconds to wait after Wayback error
 #               -x <secret consumer key>  *deprecated*
 #               -y <secret access token>  *deprecated*
-#              '-Y <URI>                  YaCy Blacklist (takes effect only in conjunction with -l)'
+#              '-Y <URI [URI...]>         YaCy Blacklista (takes effect only in conjunction with -l)'
 #               -z <time zone>            Time zone (WordPress only)
 #
 #
@@ -959,7 +959,7 @@ if ($opts{l}) {
 
         if ($opts{Y}) {
             my $ycb = WWW::YaCyBlacklist->new( { use_regex => 1 } );
-            $ycb->read_from_files( $opts{Y} );
+            $ycb->read_from_files( split /\s+/, $opts{Y} );
             say $ycb->length . ' YaCy blacklist patterns loaded.';
             grep { delete $linked{ $_ } } $ycb->find_matches( keys %linked );
 			say scalar keys %linked;
@@ -1001,6 +1001,7 @@ sub bare_url {
     elsif ( $_host =~ /(\A|\.)lemonde\.fr$/ )        { $_query =~ s/(\A|[&;])lmd_[a-z]+=[^&]*//g }    # Le Monde
     elsif ( $_host =~ /(\A|\.)elpais\.com$/ )        { $_query =~ s/(\A|[&;])ssm=[^&]*// }            # El País
     elsif ( $_host =~ /(\A|\.)youtube(-nocookie)?\.com$/ ) { $_query =~ s/(\A|[&;])featured=[^&]*// } # Youtube
+	elsif ( $_host =~ /(\A|\.)yahoo\.com$/ ) { $_query =~ s/(\A|[&;])guc(counter|e_\w+)=[^&]*//g }    # Yahoo
     elsif ( $_host =~ /(\A|\.)ingram-braun\.net$/ )  { $_query =~ s/(\A|[&;])ib_[a-z]+=[^&]*//g }     # me
 
     $_query =~ s/(\A|[&;])(g(ad_|c)|h(sa?)?_)\w+=[^&]*//g if $_query =~ /(\A|[&;])(g(ad_source|c[_l]id)|h(sa)?_\w+)=/; # Google Ads
